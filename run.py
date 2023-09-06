@@ -34,14 +34,38 @@ def draw_map(screen, map, colors):
   Draws the map "map" on the screen "screen", using color pairs found in the colors list
   Args:
       screen (window): The window on which the map is drawn
-      map (list): the 2d list that is drawn
+      map (list): Map 2D list
       colors (list): The list of color pairs to be used in the drawing
   """
   # color_map = {0:}
   for row in range(len(map)):
       for col in range(len(map[row])):
           screen.addch(row, col, " ", colors[map[row][col]])
-
+          
+def smooth_map(map):
+  """
+  Uses cellular automota algorithm to smooth the map and make it more "cave-like"
+  Args:
+      map (list): Map 2D list
+  """
+  
+def count_neighbours(map, row, col, type):
+  """
+  Counts number of tiles neighbouring map[row][col] of type "type" (wall or space)
+  Args:
+      map (_list_): Map 2D list
+      row (int): Tile row index
+      col (int): Tile column index
+      type (int): 1 or 0, wall or space
+  """
+  count = 0
+  for neighbour_row in range(row - 1, row + 1,):
+    for neighbour_col in range(col - 1, col + 1):
+      if neighbour_row != row or neighbour_col != col:
+        if map[row][col] == type:
+          count += 1
+  
+  
 def main(stdscr):
     """
     Initializes curses window and settings, and runs all functions.
@@ -62,7 +86,7 @@ def main(stdscr):
     map = build_map(c.LINES-1, c.COLS, float(sys.argv[1]))
     draw_map(stdscr, map, colors)
     
-    stdscr.getch()  # Gets user keystroke - waits for this befroe exiting
+    stdscr.getch()  # Gets user keystroke - waits for this before exiting
 
 
 wrapper(main)
