@@ -6,6 +6,8 @@ from curses import wrapper
 from time import sleep
 from pprint import pprint
 
+ROWS = 24
+COLS = 80
 
 def build_map(height, width, fill_percent):
   """
@@ -52,11 +54,11 @@ def smooth_map(map):
   Args:
     map (list): Map 2D list
   """
-  new_map = [[0]*len(map[0]) for row in range(len(map))]
+  new_map = [[1]*len(map[0]) for row in range(len(map))]
   for row in range(len(map)):
     for col in range(len(map[0])):
       wall_neighbours = count_neighbours(map, row, col, 1)
-      if wall_neighbours > 4:
+      if wall_neighbours >= 4:
         new_map[row][col] = 1
       elif wall_neighbours < 4:
         # print(f"neighbours = {wall_neighbours}")
@@ -126,19 +128,21 @@ def main(stdscr):
   c.init_pair(2, c.COLOR_RED, c.COLOR_WHITE)
   colors = [c.color_pair(1), c.color_pair(2)]
 
-  map = build_map(c.LINES-1, c.COLS, float(sys.argv[1]))
-
+  map = build_map(ROWS-1, COLS, float(sys.argv[1]))
+  
+  for ind in range(2):
+    map = smooth_map(map)
   draw_map(stdscr, map, colors)
 
   stdscr.getch()  # Gets user keystroke - waits for this before exiting
 
 
-# wrapper(main)
+wrapper(main)
 
 
 ### testing###
-map = build_map(10, 10, float(sys.argv[1]))
-pprint(map)
-print()
-pprint(smooth_map(map))
+# map = build_map(10, 10, float(sys.argv[1]))
+# pprint(map)
+# print()
+# pprint(smooth_map(map))
 # print(f"count i s: {count_neighbours(test_map,1,4,1)}")
