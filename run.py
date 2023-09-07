@@ -34,7 +34,7 @@ def build_map(height, width, fill_percent):
   return map
 
 
-def draw_map(screen, map, colors):
+def draw_map(screen, map: list[list[int]], colors:list):
   """
   Draws the map "map" on the screen "screen", using color pairs found in the colors list
   Args:
@@ -48,11 +48,13 @@ def draw_map(screen, map, colors):
       screen.addch(row, col, " ", colors[map[row][col]])
 
 
-def smooth_map(map):
+def smooth_map(map: list[list[int]]):
   """
   Uses cellular automota algorithm to smooth the map and make it more "cave-like"
   Args:
     map (list): Map 2D list
+  Returns:
+    new_map (list): Map 2D list
   """
   new_map = [[1]*len(map[0]) for row in range(len(map))]
   for row in range(len(map)):
@@ -61,31 +63,10 @@ def smooth_map(map):
       if wall_neighbours >= 4:
         new_map[row][col] = 1
       elif wall_neighbours < 4:
-        # print(f"neighbours = {wall_neighbours}")
         new_map[row][col] = 0
-      # print(f"row: {row}, col: {col}, neighbours: {wall_neighbours}")
-  #     new_map[row][col] = wall_neighbours
-  #   # pprint(new_map)
-  #   print(new_map[row])
-
-  # print()
-  # pprint(new_map)
-  # print()
-  # pprint(map)
+        
   return new_map
 
-
-# TEST
-
-test_map = [[1, 2, 3, 1, 1, 1],
-            [4, 1, 5, 1, 1, 1],
-            [6, 7, 8, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1]]
-
-
-# TEST
 def count_neighbours(map, row, col, type):
   """
   Counts number of tiles neighbouring map[row][col] of type "type" (wall or space)
@@ -105,9 +86,10 @@ type (int): 1 or 0, wall or space
       if neighbour_row != row or neighbour_col != col:  # Don't check the current tile, only neighbouring tiles
         # Only check neighbours of interior tiles
         if neighbour_col >= 0 and neighbour_col < len(map[0]) and neighbour_row >= 0 and neighbour_row < len(map):
-          # print(map[neighbour_row][neighbour_col])
           if map[neighbour_row][neighbour_col] == type:
             count += 1
+        else:
+          count += 1
   return count
 
 
@@ -128,21 +110,40 @@ def main(stdscr):
   c.init_pair(2, c.COLOR_RED, c.COLOR_WHITE)
   colors = [c.color_pair(1), c.color_pair(2)]
 
-  map = build_map(ROWS-1, COLS, float(sys.argv[1]))
+  map = build_map(c.LINES, c.COLS - 1, float(sys.argv[1]))
+  # sleep(0.5)
+  # draw_map(stdscr, map, colors)
   
-  for ind in range(2):
+  for ind in range(7):
+    stdscr.refresh()
     map = smooth_map(map)
-  draw_map(stdscr, map, colors)
+    draw_map(stdscr, map, colors)
+    # sleep(0.7)
 
-  stdscr.getch()  # Gets user keystroke - waits for this before exiting
+  x, y = 0, 0
+  pad = c.newpad(c.LINES, c.COLS - 1)
+  for i in range(c.LINES - 1):
+    for j in range(c.COLS - 1):
+      pad.addstr("X")
+    # draw_map(stdscr, map, colors)
+
+  while True:
+    key = stdscr.getkey()
+    if key == "KEY_LEFT":
+      x -= 1
+    if key == "KEY_RIGHT":
+      x += 1
+    if key == "KEY_UP":
+      y -= 1
+    if key == "KEY_DOWN":
+      y += 1
+    
+    # stdscr.clear()
+    # stdscr.addstr(y, x, "X")
+    stdscr.refresh()
+    pad.refresh(y, x, y, x, y, x)
+    
+  # stdscr.getkey("")  # Gets user keystroke - waits for this before exiting
 
 
 wrapper(main)
-
-
-### testing###
-# map = build_map(10, 10, float(sys.argv[1]))
-# pprint(map)
-# print()
-# pprint(smooth_map(map))
-# print(f"count i s: {count_neighbours(test_map,1,4,1)}")
