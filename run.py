@@ -4,6 +4,7 @@ import random
 import sys
 from curses import wrapper
 from time import sleep
+from pprint import pprint
 
 def build_map(height, width, fill_percent):
   """
@@ -48,7 +49,32 @@ def smooth_map(map):
   Args:
       map (list): Map 2D list
   """
-  
+  new_map = [["x"]*20]*20
+  for row in range(20-1):
+    for col in range(20-1):
+      wall_neighbours = count_neighbours(map,row, col, 1)
+      if wall_neighbours > 4:
+        new_map[row][col] = 1
+      elif wall_neighbours < 4:
+        print(f"neighbours = {wall_neighbours}")
+        new_map[row][col] = 0
+      # pprint(new_map)
+  pprint(new_map)
+  print()
+  pprint(map)
+
+
+#TEST
+
+test_map = [[1,2,3,1,1,1],
+            [4,1,5,1,1,1],
+            [6,7,8,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1]]
+
+
+#TEST
 def count_neighbours(map, row, col, type):
   """
   Counts number of tiles neighbouring map[row][col] of type "type" (wall or space)
@@ -59,12 +85,13 @@ def count_neighbours(map, row, col, type):
       type (int): 1 or 0, wall or space
   """
   count = 0
-  for neighbour_row in range(row - 1, row + 1,):
-    for neighbour_col in range(col - 1, col + 1):
-      if neighbour_row != row or neighbour_col != col:
-        if map[row][col] == type:
+  for neighbour_row in range(row - 1, row + 2): # range functions ends at end value - 1
+    for neighbour_col in range(col - 1, col + 2):
+      if neighbour_row != row or neighbour_col != col: # this currently counts border as well, might need to change
+        # print(map[neighbour_row][neighbour_col])
+        if map[neighbour_row][neighbour_col] == type:
           count += 1
-  
+  return count
   
 def main(stdscr):
     """
@@ -77,7 +104,7 @@ def main(stdscr):
     stdscr.keypad(True)  # Allows screen to read keystrokes
     stdscr.clear()
     stdscr.refresh()
-
+    
     # color pairs
     c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK)
     c.init_pair(2, c.COLOR_RED, c.COLOR_WHITE)
@@ -88,5 +115,9 @@ def main(stdscr):
     
     stdscr.getch()  # Gets user keystroke - waits for this before exiting
 
+# wrapper(main)
 
-wrapper(main)
+###testing###
+map = build_map(20, 20, float(sys.argv[1]))
+smooth_map(map)
+# print(f"count is: {count_neighbours(test_map,1,1,1)}")
