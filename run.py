@@ -102,48 +102,68 @@ def main(stdscr):
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
   c.curs_set(False)  # Hides flashing cursor
   stdscr.keypad(True)  # Allows screen to read keystrokes
-  stdscr.clear()
-  stdscr.refresh()
+  # stdscr.nodelay(True)
+  # stdscr.clear()
+  # stdscr.refresh()
 
   # color pairs
   c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK)
   c.init_pair(2, c.COLOR_RED, c.COLOR_WHITE)
-  colors = [c.color_pair(1), c.color_pair(2)]
+  c.init_pair(3, c.COLOR_RED, c.COLOR_BLUE)
+  c.init_pair(4, c.COLOR_RED, c.COLOR_RED)
+  colors = [c.color_pair(1), c.color_pair(2), c.color_pair(4)]
+  BLUE = c.color_pair(3)
 
-  map = build_map(c.LINES, c.COLS - 1, float(sys.argv[1]))
+  map = build_map(c.LINES * 2, (c.COLS - 1) * 2, float(sys.argv[1]))
   # sleep(0.5)
   # draw_map(stdscr, map, colors)
   
+  pad = c.newpad(c.LINES * 2, c.COLS * 2)
   for ind in range(7):
-    stdscr.refresh()
+    # stdscr.refresh()
     map = smooth_map(map)
-    draw_map(stdscr, map, colors)
+    
     # sleep(0.7)
 
-  x, y = 0, 0
-  pad = c.newpad(c.LINES, c.COLS - 1)
-  for i in range(c.LINES - 1):
-    for j in range(c.COLS - 1):
-      pad.addstr("X")
-    # draw_map(stdscr, map, colors)
-
+  x, y = 0, 12
+  # pad = c.newpad(1,1)
+  # for i in range(c.LINES - 1):
+  #   for j in range(c.COLS - 1):
+  #     pad.addstr("X")
+  draw_map(pad, map, colors)
+  # pad.refresh(2,2,0,0, 24,80)
+  ESC = 27
+  prev = [y , x]
+  map_prev = 0
   while True:
-    key = stdscr.getkey()
-    if key == "KEY_LEFT":
-      x -= 1
-    if key == "KEY_RIGHT":
-      x += 1
-    if key == "KEY_UP":
-      y -= 1
-    if key == "KEY_DOWN":
-      y += 1
-    
-    # stdscr.clear()
-    # stdscr.addstr(y, x, "X")
-    stdscr.refresh()
-    pad.refresh(y, x, y, x, y, x)
-    
-  # stdscr.getkey("")  # Gets user keystroke - waits for this before exiting
 
+    # main movement
+    key = stdscr.getch()
+    if key == ESC:
+      break
+    if key == c.KEY_LEFT:
+      
+      # Set previous player position to open space
+      pad.addstr(y + 12, x + 40, " ")
+
+      # Detect if map tile is wall
+      if map[y+12][x+40-1] != 1:
+        x -= 1
+    if key == c.KEY_RIGHT:
+      pad.addstr(y + 12, x + 40, " ")
+      if map[y+12][x+40+1] != 1:
+        x += 1
+    if key == c.KEY_UP:
+      pad.addstr(y+12, x + 40, " ")
+      if map[y+12-1][x+40] != 1:
+        y -= 1
+    if key == c.KEY_DOWN:
+      pad.addstr(y+12, x + 40, " ")
+      if map[y+12+1][x+40] != 1:
+        y += 1
+
+    # Update player position    
+    pad.addstr(y + 12,x + 40, " ", BLUE)
+    pad.refresh(y, x, 0,0 ,24, 80)
 
 wrapper(main)
