@@ -119,14 +119,17 @@ def main(stdscr):
 
   map = build_map(c.LINES * 2, (c.COLS - 1) * 2, float(sys.argv[1]))
   
-  pad = c.newpad(c.LINES * 2, c.COLS * 2)
-  for ind in range(7):
-    map = smooth_map(map)
-
   # set player spawn point to empty space
   for row in range(23,26):
     for col in range(39,42):  
       map[row][col] = 0
+  
+  pad = c.newpad(c.LINES * 2, c.COLS * 2)
+  
+  # Smooth the random map into something cave shaped
+  for ind in range(7):
+    map = smooth_map(map)
+
 
   # Initial screen position
   x, y = 0, 12
