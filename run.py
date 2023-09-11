@@ -92,6 +92,12 @@ type (int): 1 or 0, wall or space
           count += 1
   return count
 
+def spawn_bear(map):
+  """
+  Spawns a bear for the player to interact with
+  Args:
+      map (_type_): _description_
+  """
 
 def main(stdscr):
   """
@@ -102,9 +108,6 @@ def main(stdscr):
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
   c.curs_set(False)  # Hides flashing cursor
   stdscr.keypad(True)  # Allows screen to read keystrokes
-  # stdscr.nodelay(True)
-  # stdscr.clear()
-  # stdscr.refresh()
 
   # color pairs
   c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK)
@@ -115,26 +118,22 @@ def main(stdscr):
   BLUE = c.color_pair(3)
 
   map = build_map(c.LINES * 2, (c.COLS - 1) * 2, float(sys.argv[1]))
-  # sleep(0.5)
-  # draw_map(stdscr, map, colors)
   
   pad = c.newpad(c.LINES * 2, c.COLS * 2)
   for ind in range(7):
-    # stdscr.refresh()
     map = smooth_map(map)
-    
-    # sleep(0.7)
 
+  # set player spawn point to empty space
+  for row in range(23,26):
+    for col in range(39,42):  
+      map[row][col] = 0
+
+  # Initial screen position
   x, y = 0, 12
-  # pad = c.newpad(1,1)
-  # for i in range(c.LINES - 1):
-  #   for j in range(c.COLS - 1):
-  #     pad.addstr("X")
+  
   draw_map(pad, map, colors)
-  # pad.refresh(2,2,0,0, 24,80)
+
   ESC = 27
-  prev = [y , x]
-  map_prev = 0
   while True:
 
     # main movement
@@ -165,5 +164,6 @@ def main(stdscr):
     # Update player position    
     pad.addstr(y + 12,x + 40, " ", BLUE)
     pad.refresh(y, x, 0,0 ,24, 80)
+    # pad.refresh(y, x, 0, 0, 40, 155)
 
 wrapper(main)
