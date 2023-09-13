@@ -8,6 +8,8 @@ from pprint import pprint
 
 ROWS = 24
 COLS = 80
+ESC = 27
+ENTER = 10
 
 def build_map(height, width, fill_percent):
   """
@@ -34,19 +36,18 @@ def build_map(height, width, fill_percent):
   return map
 
 
-def draw_map(screen, map: list[list[int]], colors:list):
+def draw_map(screen, map: list[list[int]], colors:dict):
   """
   Draws the map "map" on the screen "screen", using color pairs found in the colors list
   Args:
     screen (window): The window on which the map is drawn
     map (list): Map 2D list
-    colors (list): The list of color pairs to be used in the drawing
+    colors (dict): The dict of color pairs to be used in the drawing
   """
   # color_map = {0:}
   for row in range(len(map)):
     for col in range(len(map[row])):
-      screen.addch(row, col, " ", colors[map[row][col]])
-
+      screen.addch(row, col, " ", list(colors.values())[map[row][col]])
 
 def smooth_map(map: list[list[int]]):
   """
@@ -99,6 +100,54 @@ def spawn_bear(map):
       map (_type_): _description_
   """
 
+def pause_menu(screen):
+  """
+  Creates Pause menu window above main game, with various game options
+  """
+  pause_win = c.newwin(18,60,3,10)
+  pause_win.border(0,0,0,0,0,0,0,0)
+  pause_win.addstr(2, 24,"GAME PAUSED")
+
+  pause_win.refresh()
+  pause_win.keypad(True)
+  pause_win.nodelay(True)
+  options = ["Resume", "Main Menu", "Help","Exit"]
+  highlight = 0
+  while True:
+    key = pause_win.getch()
+    if key == ESC: 
+      break
+    # highlight options
+    if key == c.KEY_DOWN:
+      highlight = (highlight + 1)%4
+
+    if key == c.KEY_UP:
+      highlight = (highlight - 1) % 4  
+    
+    if key == ord(" ") or key == ENTER:
+      match highlight:
+        case 0: # Resume
+          break
+        case 1: # Main Menu
+          pass # TODO: ADD FUNCTIONALITY TO MAIN MENU
+        case 2: # Help
+          pass # TODO: ADD HELP SCREEN
+        case 3: # Exit
+          del pause_win
+          c.endwin() 
+          break
+    
+    # Print and highlight selected option
+    for index, option in enumerate(options):
+      if index == highlight:
+        pause_win.attron(c.A_REVERSE)
+        pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
+        pause_win.attroff(c.A_REVERSE)
+      else:
+        pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
+    pause_win.refresh()
+
+
 def main(stdscr):
   """
   Initializes curses window and settings, and runs all functions.
@@ -108,14 +157,18 @@ def main(stdscr):
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
   c.curs_set(False)  # Hides flashing cursor
   stdscr.keypad(True)  # Allows screen to read keystrokes
-
+  stdscr.nodelay(True)
   # color pairs
-  c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK)
-  c.init_pair(2, c.COLOR_RED, c.COLOR_WHITE)
-  c.init_pair(3, c.COLOR_RED, c.COLOR_BLUE)
-  c.init_pair(4, c.COLOR_RED, c.COLOR_RED)
-  colors = [c.color_pair(1), c.color_pair(2), c.color_pair(4)]
-  BLUE = c.color_pair(3)
+  c.init_pair(1, c.COLOR_WHITE, c.COLOR_BLACK)
+  c.init_pair(2, c.COLOR_BLACK, c.COLOR_WHITE)
+  c.init_pair(3, c.COLOR_WHITE, c.COLOR_BLUE)
+  c.init_pair(4, c.COLOR_WHITE, c.COLOR_RED)
+  colors = {
+            "w_black": c.color_pair(1),
+            "black_w": c.color_pair(2),
+            "w_blue": c.color_pair(3),
+            "w_red": c.color_pair(4)
+            }
 
   map = build_map(c.LINES * 2, (c.COLS - 1) * 2, float(sys.argv[1]))
   
@@ -136,18 +189,18 @@ def main(stdscr):
   
   draw_map(pad, map, colors)
 
-  ESC = 27
   while True:
-
     # main movement
     key = stdscr.getch()
     if key == ESC:
+      pause_menu(stdscr)
+    
+    if key == ord("q") or c.isendwin():
       break
+
     if key == c.KEY_LEFT:
-      
       # Set previous player position to open space
       pad.addstr(y + 12, x + 40, " ")
-
       # Detect if map tile is wall
       if map[y+12][x+40-1] != 1:
         x -= 1
@@ -165,7 +218,7 @@ def main(stdscr):
         y += 1
 
     # Update player position    
-    pad.addstr(y + 12,x + 40, " ", BLUE)
+    pad.addstr(y + 12,x + 40, "❤")
     pad.refresh(y, x, 0,0 ,24, 80)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
