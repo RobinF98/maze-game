@@ -1,7 +1,7 @@
 # Write your code to expect a terminal of 80 characters wide and 24 rows high
 import curses as c
 import random
-import sys
+# import sys
 from curses import wrapper
 from time import sleep
 from pprint import pprint
@@ -131,10 +131,13 @@ def pause_menu(screen):
         case 1: # Main Menu
           pass # TODO: ADD FUNCTIONALITY TO MAIN MENU
         case 2: # Help
-          pass # TODO: ADD HELP SCREEN
+          pause_win.clear()
+          pause_win.noutrefresh()
+          help_menu(screen, pause_win) # TODO: ADD HELP SCREEN
         case 3: # Exit
           del pause_win
-          c.endwin() 
+          c.endwin()
+          print("Thanks for playing!")
           break
     
     # Print and highlight selected option
@@ -144,9 +147,25 @@ def pause_menu(screen):
         pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
         pause_win.attroff(c.A_REVERSE)
       else:
+        # Add strings in rough center of window
         pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
     pause_win.refresh()
 
+def help_menu(screen, pause_win):
+  """
+  Displays Help Menu information window
+  """
+  help_win = pause_win
+  help_win.clear()
+  
+  help_win.addstr(2, 28,"HELP")
+  
+  help_win.refresh()
+  key = help_win.getch()
+  if key  == ESC:
+    # del help_win
+    # pause_win.refresh()
+    pause_menu(screen)
 
 def main(stdscr):
   """
@@ -170,7 +189,7 @@ def main(stdscr):
             "w_red": c.color_pair(4)
             }
 
-  map = build_map(c.LINES * 2, (c.COLS - 1) * 2, float(sys.argv[1]))
+  map = build_map(c.LINES * 2, (c.COLS - 1) * 2, 0.35)
   
   # set player spawn point to empty space
   for row in range(23,26):
@@ -195,7 +214,7 @@ def main(stdscr):
     if key == ESC:
       pause_menu(stdscr)
     
-    if key == ord("q") or c.isendwin():
+    if key == ord("q") or c.isendwin(): # TODO: Remove "q" from this bit
       break
 
     if key == c.KEY_LEFT:
