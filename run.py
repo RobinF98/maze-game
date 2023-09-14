@@ -93,12 +93,23 @@ type (int): 1 or 0, wall or space
           count += 1
   return count
 
-def spawn_bear(map):
+def spawn_bear(map, x_limit):
   """
   Spawns a bear for the player to interact with
   Args:
-      map (_type_): _description_
+      map (_list_): Map 2D list
+      x_limit (_int_): X coord limit for spawn location
   """
+  # y coord offset from horizontal map boundaries
+  random_y = random.randint(3,ROWS - 3)
+
+  # loop through subsection of map within rightmost wall and x_limit and along random_y
+  # for coord in range(158 , 159 - x_limit, -1):
+  #   if map[10][coord] == 0:
+  #     map[10][coord] = 2
+  #     break
+  map[20][len(map[0]) - 10] = 2
+  return map
 
 def pause_menu(screen):
   """
@@ -159,15 +170,16 @@ def help_menu(screen, pause_win):
   
   help_win.addstr(2, 28,"HELP")
   help_list = [
-              "Welcome to my tiny terminal game",
-              "Walk around using the arrow keys",
-              "Interact using 'E'",
-              "Access inventory using 'I'",
-              "Explore the map, if you get stuck or reach a dead end, try reloading the game"
-              "Press any key to go back",
+              " ",
+              "• Walk around using the arrow keys",
+              "• Interact using 'E'",
+              "• Access inventory using 'I'",
+              "• Explore the map, if you get stuck", 
+              "  or reach a dead end, try reloading the game",
+              "• Press any key to go back",
                ]
   for index, str in enumerate(help_list):
-    help_win.addstr(5 + 2 * index, 5, f"{str}")
+    help_win.addstr(3 + 2 * index, 9, f"{str}")
   help_win.refresh()
   key = help_win.getch()
   if key  != -1:
@@ -210,7 +222,7 @@ def main(stdscr):
   for ind in range(7):
     map = smooth_map(map)
 
-
+  map = spawn_bear(map, 10)
   # Initial screen position
   x, y = 0, 12
   
