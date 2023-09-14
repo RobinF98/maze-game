@@ -111,7 +111,7 @@ def pause_menu(screen):
   pause_win.refresh()
   pause_win.keypad(True)
   pause_win.nodelay(True)
-  options = ["Resume", "Main Menu", "Help","Exit"]
+  options = ["Resume", "Help","Exit"]
   highlight = 0
   while True:
     key = pause_win.getch()
@@ -122,19 +122,18 @@ def pause_menu(screen):
       highlight = (highlight + 1)%4
 
     if key == c.KEY_UP:
-      highlight = (highlight - 1) % 4  
+      highlight = (highlight - 1) % 3  
     
     if key == ord(" ") or key == ENTER:
       match highlight:
         case 0: # Resume
           break
-        case 1: # Main Menu
-          pass # TODO: ADD FUNCTIONALITY TO MAIN MENU
-        case 2: # Help
+        case 1: # Help
           pause_win.clear()
           pause_win.noutrefresh()
           help_menu(screen, pause_win) # TODO: ADD HELP SCREEN
-        case 3: # Exit
+          break
+        case 2: # Exit
           del pause_win
           c.endwin()
           print("Thanks for playing!")
@@ -144,25 +143,34 @@ def pause_menu(screen):
     for index, option in enumerate(options):
       if index == highlight:
         pause_win.attron(c.A_REVERSE)
-        pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
+        pause_win.addstr(6 + 3 * index, int(30 - len(option) / 2), f"{option}")
         pause_win.attroff(c.A_REVERSE)
       else:
         # Add strings in rough center of window
-        pause_win.addstr(5 + 3 * index, int(30 - len(option) / 2), f"{option}")
+        pause_win.addstr(6 + 3 * index, int(30 - len(option) / 2), f"{option}")
     pause_win.refresh()
 
 def help_menu(screen, pause_win):
   """
   Displays Help Menu information window
   """
-  help_win = pause_win
-  help_win.clear()
+  help_win = c.newwin(18,60,3,10)
+  help_win.border()
   
   help_win.addstr(2, 28,"HELP")
-  
+  help_list = [
+              "Welcome to my tiny terminal game",
+              "Walk around using the arrow keys",
+              "Interact using 'E'",
+              "Access inventory using 'I'",
+              "Explore the map, if you get stuck or reach a dead end, try reloading the game"
+              "Press any key to go back",
+               ]
+  for index, str in enumerate(help_list):
+    help_win.addstr(5 + 2 * index, 5, f"{str}")
   help_win.refresh()
   key = help_win.getch()
-  if key  == ESC:
+  if key  != -1:
     # del help_win
     # pause_win.refresh()
     pause_menu(screen)
@@ -237,7 +245,7 @@ def main(stdscr):
         y += 1
 
     # Update player position    
-    pad.addstr(y + 12,x + 40, "❤")
+    pad.addstr(y + 12,x + 40, "@")
     pad.refresh(y, x, 0,0 ,24, 80)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
