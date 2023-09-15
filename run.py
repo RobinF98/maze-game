@@ -111,7 +111,7 @@ def spawn_bear(map, x_limit):
   map[20][len(map[0]) - 10] = 2
 
   #shortcut ---- DELETE THIS THISNRIHSWIOHASOFIHSqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdwqdqwdqwdqwdqwdqwdqwdqdwqd
-  for i in range(1,len(map[15])):
+  for i in range(1,len(map[20])):
     map[15][i] = 0
   #asdddddwqeeeddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
 
@@ -174,7 +174,7 @@ def pause_menu(screen):
         pause_win.addstr(6 + 3 * index, int(30 - len(option) / 2), f"{option}")
     pause_win.refresh()
 
-def help_menu(screen, pause_win):
+def help_menu(screen):
   """
   Displays Help Menu information window
   """
@@ -200,7 +200,39 @@ def help_menu(screen, pause_win):
     # pause_win.refresh()
     pause_menu(screen)
 
-# def bear_dialogue
+def bear_dialogue():
+  bear_win = c.newwin(10,80,13,0)
+  bear_win.border()
+  dialogue = [
+    "Baby Bear: BOooo HOOooo :(",
+    "You: Hey hey, what's the matter? ö",
+    "Baby Bear: Goldilocks stole my porridge, and I'm so hungwy :(",
+    "Press E to console",
+    "Baby Bear is unconsolable" 
+  ]
+
+  # print dialogue line by line on each key press
+  for index, str in enumerate(dialogue):
+    if index == 2:
+      break
+    bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
+    bear_win.refresh()
+    key = bear_win.getch()
+
+  # TODO: fix inf loop inconsolable, clear screen after each Inconsolable, exit dialogue after 3 inconsolable's, prevent re running dialogue after exit (with call to quest() or a bool or something)
+  while True:
+    key = bear_win.getch()
+    counter = 0
+    bear_win.addstr(6, 2, f"{dialogue[3]}")
+    if key == ord("e"):
+      bear_win.clear()
+      bear_win.addstr(2, 2, f"{dialogue[4]}")
+      bear_win.getch()
+      counter += 1
+    if counter == 3:
+      break
+
+  
 
 def main(stdscr):
   """
@@ -251,6 +283,10 @@ def main(stdscr):
     
     if key == ord("q") or c.isendwin(): # TODO: Remove "q" from this bit
       break
+
+    # Check if player is near bear:
+    if x + 40 - 1 == len(map[10]) - 10:
+      bear_dialogue()
 
     if key == c.KEY_LEFT:
       # Set previous player position to open space
