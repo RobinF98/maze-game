@@ -109,7 +109,20 @@ def spawn_bear(map, x_limit):
   #     map[10][coord] = 2
   #     break
   map[20][len(map[0]) - 10] = 2
+
+  #shortcut ---- DELETE THIS THISNRIHSWIOHASOFIHSqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdwqdqwdqwdqwdqwdqwdqwdqdwqd
+  for i in range(1,len(map[15])):
+    map[15][i] = 0
+  #asdddddwqeeeddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+
   return map
+
+def inventory():
+  inv_win = c.newwin(1,60,24,0)
+  inv_win.nodelay(True)
+  inv_win.addstr("Inventory:")
+  inv_win.refresh
+  inv_win.getch()
 
 def pause_menu(screen):
   """
@@ -187,6 +200,8 @@ def help_menu(screen, pause_win):
     # pause_win.refresh()
     pause_menu(screen)
 
+# def bear_dialogue
+
 def main(stdscr):
   """
   Initializes curses window and settings, and runs all functions.
@@ -227,7 +242,7 @@ def main(stdscr):
   x, y = 0, 12
   
   draw_map(pad, map, colors)
-
+  inventory()
   while True:
     # main movement
     key = stdscr.getch()
@@ -258,7 +273,7 @@ def main(stdscr):
 
     # Update player position    
     pad.addstr(y + 12,x + 40, "@")
-    pad.refresh(y, x, 0,0 ,24, 80)
+    pad.refresh(y, x, 0,0 ,23, 80)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
 wrapper(main)
