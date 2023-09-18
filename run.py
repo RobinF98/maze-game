@@ -232,7 +232,8 @@ def bear_dialogue():
     if counter == 3:
       break
 
-  
+
+
 
 def main(stdscr):
   """
@@ -242,7 +243,6 @@ def main(stdscr):
   c.noecho()  # Prevents keystrokes being echoed on screen
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
   # c.curs_set(0)  # Hides flashing cursor
-  c.leaveok(True)
   stdscr.keypad(True)  # Allows screen to read keystrokes
   stdscr.nodelay(True)
   # color pairs
