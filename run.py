@@ -155,7 +155,7 @@ def pause_menu(screen):
         case 1: # Help
           pause_win.clear()
           pause_win.noutrefresh()
-          help_menu(screen, pause_win) # TODO: ADD HELP SCREEN
+          help_menu(screen) # TODO: ADD HELP SCREEN
           break
         case 2: # Exit
           del pause_win
