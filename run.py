@@ -241,7 +241,7 @@ def main(stdscr):
   stdscr = c.initscr()  # Initialize curses module, returns window
   c.noecho()  # Prevents keystrokes being echoed on screen
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
-  c.curs_set(False)  # Hides flashing cursor
+  c.curs_set(0)  # Hides flashing cursor
   stdscr.keypad(True)  # Allows screen to read keystrokes
   stdscr.nodelay(True)
   # color pairs
