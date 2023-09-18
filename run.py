@@ -201,7 +201,7 @@ def help_menu(screen):
     pause_menu(screen)
 
 def bear_dialogue():
-  bear_win = c.newwin(10,80,13,0)
+  bear_win = c.newwin(10,79,13,0)
   bear_win.border()
   dialogue = [
     "Baby Bear: BOooo HOOooo :(",
@@ -231,8 +231,6 @@ def bear_dialogue():
       counter += 1
     if counter == 3:
       break
-
-
 
 
 def main(stdscr):
@@ -310,7 +308,7 @@ def main(stdscr):
 
     # Update player position    
     pad.addstr(y + 12,x + 40, "@")
-    pad.refresh(y, x, 0,0 ,23, 80)
+    pad.refresh(y, x, 0,0 ,23, 79)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
 wrapper(main)
