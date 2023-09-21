@@ -48,7 +48,7 @@ def draw_map(screen, map: list[list[int]], colors:dict):
   for row in range(len(map)):
     for col in range(len(map[row])):
       if map[row][col] == 3:
-        screen.addch(row, col, ".", list(colors.values())[map[row][col]])
+        screen.addch(row, col, "•", list(colors.values())[map[row][col]])
       else:
         screen.addch(row, col, " ", list(colors.values())[map[row][col]])
 
@@ -121,11 +121,24 @@ def spawn_bear(map, x_limit):
   return map
 
 def inventory():
+  global inv_win
   inv_win = c.newwin(1,60,23,0)
   inv_win.nodelay(True)
   inv_win.addstr("Inventory:")
   inv_win.refresh
   inv_win.getch()
+  inv = {
+    "rock": 0,
+    "porridge": 0
+    }
+  return inv
+
+def update_inventory(item:str, inv:dict):
+  new_inventory = inv[item] + 1#.get(item,-1) + 1
+  inv.update({item: new_inventory})
+  inv_win.addstr(0,30, f"{item}: {new_inventory}")
+  inv_win.refresh()
+  return inv
 
 def pause_menu(screen):
   """
@@ -253,8 +266,11 @@ def spawn_rock(map:list[list[int]]):
     for col in range(len(map[0])):
       if map[row][col] == 0:
         wall_neighbours = count_neighbours(map, row, col, 1)
-        if wall_neighbours >= 5:
-          map[row][col] = 3
+        # for spawning rocks in nooks and crannies
+        if wall_neighbours >= 5 and wall_neighbours <= 6:
+          # rock rarity
+          if random.random() < 0.05: 
+            map[row][col] = 3
   return map
 
 def main(stdscr):
@@ -264,7 +280,7 @@ def main(stdscr):
   stdscr = c.initscr()  # Initialize curses module, returns window
   c.noecho()  # Prevents keystrokes being echoed on screen
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
-  # c.curs_set(0)  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
+  c.curs_set(0)  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
   stdscr.keypad(True)  # Allows screen to read keystrokes
   stdscr.nodelay(True)
   # color pairs
@@ -298,8 +314,13 @@ def main(stdscr):
   x, y = 0, 12
   # Tile that player moves to
   next_tile = 0
+
+  # Draw the map to the pad
   draw_map(pad, map, colors)
-  inventory()
+
+  # Set the inventory dictionary
+  global inventory
+  inventory = inventory()
   update_quest(2)
   quest = False
   while True:
@@ -324,7 +345,7 @@ def main(stdscr):
       if next_tile != 1:
         # Detect if next tile is a rock
         if next_tile == 3:
-          update_inventory("rock") #TODO: Add update inventory function that checks if arg is in inventory items list and increments count
+          inventory = update_inventory("rock", inventory) #TODO: Add update inventory function that checks if arg is in inventory items list and increments count
         x -= 1
 
     if key == c.KEY_RIGHT:
@@ -332,7 +353,7 @@ def main(stdscr):
       next_tile = map[y+12][x+40+1]
       if next_tile != 1:
         if next_tile == 3:
-          update_inventory("rock")
+          inventory = update_inventory("rock", inventory)
         x += 1
 
     if key == c.KEY_UP:
@@ -340,7 +361,7 @@ def main(stdscr):
       next_tile = map[y+12-1][x+40]
       if next_tile != 1:
         if next_tile == 3:
-          update_inventory("rock")
+          inventory = update_inventory("rock", inventory)
         y -= 1
 
     if key == c.KEY_DOWN:
@@ -348,12 +369,12 @@ def main(stdscr):
       next_tile = map[y+12+1][x+40]
       if next_tile != 1:
         if next_tile == 3:
-          update_inventory("rock")
+          inventory = update_inventory("rock",inventory)
         y += 1
 
     # Update player position    
     pad.addstr(y + 12,x + 40, "@")
-    pad.refresh(y, x, 0,0 ,23, 60)
+    pad.refresh(y, x, 0,0 ,22, 60)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
 wrapper(main)
