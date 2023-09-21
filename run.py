@@ -118,7 +118,7 @@ def spawn_bear(map, x_limit):
   return map
 
 def inventory():
-  inv_win = c.newwin(1,60,24,0)
+  inv_win = c.newwin(1,60,23,0)
   inv_win.nodelay(True)
   inv_win.addstr("Inventory:")
   inv_win.refresh
@@ -155,7 +155,7 @@ def pause_menu(screen):
         case 1: # Help
           pause_win.clear()
           pause_win.noutrefresh()
-          help_menu(screen) # TODO: ADD HELP SCREEN
+          help_menu(screen)
           break
         case 2: # Exit
           del pause_win
@@ -213,16 +213,17 @@ def bear_dialogue():
 
   # print dialogue line by line on each key press
   for index, str in enumerate(dialogue):
+
     if index == 2:
       break
     bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
     bear_win.refresh()
     key = bear_win.getch()
-
+  counter = 0
   # TODO: fix inf loop inconsolable, clear screen after each Inconsolable, exit dialogue after 3 inconsolable's, prevent re running dialogue after exit (with call to quest() or a bool or something)
   while True:
     key = bear_win.getch()
-    counter = 0
+    
     bear_win.addstr(6, 2, f"{dialogue[3]}")
     if key == ord("e"):
       bear_win.clear()
@@ -231,6 +232,12 @@ def bear_dialogue():
       counter += 1
     if counter == 3:
       break
+  return True
+
+def update_quest(quest):
+  quest_win = c.newwin(23,19,0,60)
+  quest_win.border()
+  quest_win.refresh()
 
 
 def main(stdscr):
@@ -240,7 +247,7 @@ def main(stdscr):
   stdscr = c.initscr()  # Initialize curses module, returns window
   c.noecho()  # Prevents keystrokes being echoed on screen
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
-  # c.curs_set(0)  # Hides flashing cursor
+  # c.curs_set(0)  # Hides flashing cursor  TODO: figure out how to hide cursor
   stdscr.keypad(True)  # Allows screen to read keystrokes
   stdscr.nodelay(True)
   # color pairs
@@ -274,6 +281,8 @@ def main(stdscr):
   
   draw_map(pad, map, colors)
   inventory()
+  update_quest(2)
+  quest = False
   while True:
     # main movement
     key = stdscr.getch()
@@ -285,7 +294,8 @@ def main(stdscr):
 
     # Check if player is near bear:
     if x + 40 - 1 == len(map[10]) - 10:
-      bear_dialogue()
+      if not quest:
+        quest = bear_dialogue()
 
     if key == c.KEY_LEFT:
       # Set previous player position to open space
@@ -308,7 +318,7 @@ def main(stdscr):
 
     # Update player position    
     pad.addstr(y + 12,x + 40, "@")
-    pad.refresh(y, x, 0,0 ,23, 79)
+    pad.refresh(y, x, 0,0 ,23, 60)
     # pad.refresh(y, x, 0, 0, 40, 155)
 
 wrapper(main)
