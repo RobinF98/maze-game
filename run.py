@@ -44,10 +44,13 @@ def draw_map(screen, map: list[list[int]], colors:dict):
     map (list): Map 2D list
     colors (dict): The dict of color pairs to be used in the drawing
   """
-  # color_map = {0:}
+
   for row in range(len(map)):
     for col in range(len(map[row])):
-      screen.addch(row, col, " ", list(colors.values())[map[row][col]])
+      if map[row][col] == 3:
+        screen.addch(row, col, ".", list(colors.values())[map[row][col]])
+      else:
+        screen.addch(row, col, " ", list(colors.values())[map[row][col]])
 
 def smooth_map(map: list[list[int]]):
   """
@@ -214,31 +217,45 @@ def bear_dialogue():
   # print dialogue line by line on each key press
   for index, str in enumerate(dialogue):
 
-    if index == 2:
+    if index == 3:
       break
     bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
     bear_win.refresh()
     key = bear_win.getch()
   counter = 0
   # TODO: fix inf loop inconsolable, clear screen after each Inconsolable, exit dialogue after 3 inconsolable's, prevent re running dialogue after exit (with call to quest() or a bool or something)
-  while True:
-    key = bear_win.getch()
-    
-    bear_win.addstr(6, 2, f"{dialogue[3]}")
-    if key == ord("e"):
-      bear_win.clear()
-      bear_win.addstr(2, 2, f"{dialogue[4]}")
-      bear_win.getch()
-      counter += 1
-    if counter == 3:
-      break
+  
+  key = bear_win.getch()
+  
+  bear_win.addstr(6, 2, f"{dialogue[3]}")
+  if key == ord("e") or key == ord("E"):
+    bear_win.clear()
+    bear_win.addstr(2, 2, f"{dialogue[4]}")
+    bear_win.getch()
+    counter += 1
+
   return True
 
 def update_quest(quest):
   quest_win = c.newwin(23,19,0,60)
   quest_win.border()
+
   quest_win.refresh()
 
+def spawn_rock(map:list[list[int]]):
+  """
+  Spawns rocks in locations around the map
+  Args:
+      map (list): 2D list containing the map
+  """
+  # Count neighbour tiles
+  for row in range(len(map)):
+    for col in range(len(map[0])):
+      if map[row][col] == 0:
+        wall_neighbours = count_neighbours(map, row, col, 1)
+        if wall_neighbours >= 5:
+          map[row][col] = 3
+  return map
 
 def main(stdscr):
   """
@@ -247,14 +264,14 @@ def main(stdscr):
   stdscr = c.initscr()  # Initialize curses module, returns window
   c.noecho()  # Prevents keystrokes being echoed on screen
   c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
-  # c.curs_set(0)  # Hides flashing cursor  TODO: figure out how to hide cursor
+  # c.curs_set(0)  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
   stdscr.keypad(True)  # Allows screen to read keystrokes
   stdscr.nodelay(True)
   # color pairs
   c.init_pair(1, c.COLOR_WHITE, c.COLOR_BLACK)
   c.init_pair(2, c.COLOR_BLACK, c.COLOR_WHITE)
   c.init_pair(3, c.COLOR_WHITE, c.COLOR_BLUE)
-  c.init_pair(4, c.COLOR_WHITE, c.COLOR_RED)
+  c.init_pair(4, c.COLOR_WHITE, c.COLOR_BLACK)
   colors = {
             "w_black": c.color_pair(1),
             "black_w": c.color_pair(2),
@@ -276,9 +293,11 @@ def main(stdscr):
     map = smooth_map(map)
 
   map = spawn_bear(map, 10)
+  map = spawn_rock(map)
   # Initial screen position
   x, y = 0, 12
-  
+  # Tile that player moves to
+  next_tile = 0
   draw_map(pad, map, colors)
   inventory()
   update_quest(2)
@@ -301,19 +320,35 @@ def main(stdscr):
       # Set previous player position to open space
       pad.addstr(y + 12, x + 40, " ")
       # Detect if map tile is wall
-      if map[y+12][x+40-1] != 1:
+      next_tile = map[y+12][x+40-1]
+      if next_tile != 1:
+        # Detect if next tile is a rock
+        if next_tile == 3:
+          update_inventory("rock") #TODO: Add update inventory function that checks if arg is in inventory items list and increments count
         x -= 1
+
     if key == c.KEY_RIGHT:
       pad.addstr(y + 12, x + 40, " ")
-      if map[y+12][x+40+1] != 1:
+      next_tile = map[y+12][x+40+1]
+      if next_tile != 1:
+        if next_tile == 3:
+          update_inventory("rock")
         x += 1
+
     if key == c.KEY_UP:
       pad.addstr(y+12, x + 40, " ")
-      if map[y+12-1][x+40] != 1:
+      next_tile = map[y+12-1][x+40]
+      if next_tile != 1:
+        if next_tile == 3:
+          update_inventory("rock")
         y -= 1
+
     if key == c.KEY_DOWN:
       pad.addstr(y+12, x + 40, " ")
-      if map[y+12+1][x+40] != 1:
+      next_tile = map[y+12+1][x+40]
+      if next_tile != 1:
+        if next_tile == 3:
+          update_inventory("rock")
         y += 1
 
     # Update player position    
