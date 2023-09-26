@@ -1,32 +1,17 @@
-![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
+# Small Game Thing dot py
 
-Welcome,
+This is a small terminal adventure game
 
-This is the Code Institute student template for deploying your third portfolio project, the Python command-line project. The last update to this file was: **March 14, 2023**
+## Features
 
-## Reminders
+### Map
 
-- Your code must be placed in the `run.py` file
-- Your dependencies must be placed in the `requirements.txt` file
-- Do not edit any of the other files or your code may not deploy properly
+- The map is made using cellular automata, and is randomly generated each time the game is run:
 
-## Creating the Heroku app
+  - A random grid of 1s (walls) and 0s (empty space) is generated. The percentage of map that is wall tiles can be varied.
 
-When you create the app, you will need to add two buildpacks from the _Settings_ tab. The ordering is as follows:
+  - The smooth_map function loops through every tile, calling the count_neighbours function to count the number of surrounding wall tiles for each tile. If the number of neighbouring wall tiles is 4 or greater, the tile is set to a wall tile. if not, the tile is set to empty space.
 
-1. `heroku/python`
-2. `heroku/nodejs`
+  - Running the smooth_map function a few time results in the game map:
 
-You must then create a _Config Var_ called `PORT`. Set this to `8000`
-
-If you have credentials, such as in the Love Sandwiches project, you must create another _Config Var_ called `CREDS` and paste the JSON into the value field.
-
-Connect your GitHub repository and deploy as normal.
-
-## Constraints
-
-The deployment terminal is set to 80 columns by 24 rows. That means that each line of text needs to be 80 characters or less otherwise it will be wrapped onto a second line.
-
----
-
-Happy coding!
+  - ![Smooth Map function in action](documentation/smooth_map.gif)
