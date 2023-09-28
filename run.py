@@ -260,17 +260,22 @@ def bear_dialogue():
         bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
         bear_win.refresh()
         key = bear_win.getch()
-    counter = 0
     # TODO: fix inf loop inconsolable, clear screen after each Inconsolable, exit dialogue after 3 inconsolable's, prevent re running dialogue after exit (with call to quest() or a bool or something)
 
-    key = bear_win.getch()
-
     bear_win.addstr(6, 2, f"{dialogue[3]}")
-    if key == ord("e") or key == ord("E"):
-        bear_win.clear()
-        bear_win.addstr(2, 2, f"{dialogue[4]}")
-        bear_win.getch()
-        counter += 1
+
+    while True:
+        key = bear_win.getch()
+        if key == ord("e") or key == ord("E"):
+            bear_win.clear()
+            bear_win.border()
+            bear_win.addstr(2, 2, f"{dialogue[4]}")
+            bear_win.refresh()
+            sleep(1)
+            # bear_win.getch()
+            break
+        else:
+            pass
 
     return True
 
