@@ -410,6 +410,6 @@ def main(stdscr):
         # pad.refresh(y, x, 0, 0, 40, 155)
 
 
-# wrapper(main)
+wrapper(main)
 print("😀😁")
 print(emoji.emojize("Python is :thumbsup:", language="alias"))
