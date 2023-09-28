@@ -15,3 +15,8 @@ This is a small terminal adventure game
   - Running the smooth_map function a few time results in the game map:
 
   - ![Smooth Map function in action](documentation/smooth_map.gif)
+
+## Bugs
+
+- Pause menu takes a second to appear after esc press in Heroku deployment
+  - Unsure if this is code issue or Heroku issue. If code issue, cannot recreate in any other terminal environment
