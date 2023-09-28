@@ -133,6 +133,7 @@ def spawn_bear(map, x_limit):
     map[BEAR_Y][BEAR_X] = 2
     # Bear emoji width is 2, set to 4 to allow for collision detection in main
     map[BEAR_Y][BEAR_X + 1] = 4
+    map[BEAR_Y][BEAR_X - 1] = 4
 
     # shortcut ---- DELETE THIS THISNRIHSWIOHASOFIHSqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdwqdqwdqwdqwdqwdqwdqwdqdwqd
     for i in range(1, len(map[20]) - 1):
@@ -369,7 +370,7 @@ def main(stdscr):
             break
 
         # Check if player is near bear:
-        if x + 40 in range(BEAR_X - 1, BEAR_X + 2) and y + 12 in range(
+        if x + 40 in range(BEAR_X - 2, BEAR_X + 2) and y + 12 in range(
             BEAR_Y - 1, BEAR_Y + 2
         ):
             if not quest:
