@@ -1,6 +1,7 @@
 # Write your code to expect a terminal of 80 characters wide and 24 rows high
 import curses as c
 import random
+import emoji
 
 from curses import wrapper
 from time import sleep
@@ -409,4 +410,6 @@ def main(stdscr):
         # pad.refresh(y, x, 0, 0, 40, 155)
 
 
-wrapper(main)
+# wrapper(main)
+print("😀😁")
+print(emoji.emojize("Python is :thumbsup:", language="alias"))
