@@ -11,8 +11,9 @@ ROWS = 24
 COLS = 80
 ESC = 27
 ENTER = 10
-BEAR_X = 41
-BEAR_Y = 20
+# Bear spawn coordinates
+BEAR_X = random.randrange(190, 230)
+BEAR_Y = random.randrange(5, 44)
 
 
 def build_map(height, width, fill_percent):
@@ -140,7 +141,7 @@ def spawn_bear(map, x_limit):
 
 def inventory():
     global inv_win
-    inv_win = c.newwin(1, 60, 23, 0)
+    inv_win = c.newwin(1, 40, 23, 0)
     inv_win.nodelay(True)
     inv_win.addstr("Inventory:")
     inv_win.refresh
@@ -152,9 +153,15 @@ def inventory():
 def update_inventory(item: str, inv: dict):
     new_inventory = inv[item] + 1  # .get(item,-1) + 1
     inv.update({item: new_inventory})
-    inv_win.addstr(0, 30, f"{item}: {new_inventory}")
+    inv_win.addstr(0, 10, f"{item}: {new_inventory}")
     inv_win.refresh()
     return inv
+
+
+def coords(x: int, y: int):
+    coords_win = c.newwin(1, 19, 23, 41)
+    coords_win.addstr(0, 1, f"x:{x}, y:{y}")
+    coords_win.refresh()
 
 
 def show_inventory(inv: dict):
@@ -451,6 +458,7 @@ def main(stdscr):
             update_quest(quest)
         # Update player position
         pad.addstr(y + 12, x + 40, "❤")
+        coords(x + 40, y + 12)
         pad.refresh(y, x, 0, 0, 22, 60)
         # pad.refresh(y, x, 0, 0, 40, 155)
 
