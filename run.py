@@ -12,7 +12,8 @@ COLS = 80
 ESC = 27
 ENTER = 10
 # Bear spawn coordinates
-BEAR_X = random.randrange(190, 220)
+# BEAR_X = random.randrange(190, 220)
+BEAR_X = 100
 BEAR_Y = random.randrange(5, 44)
 
 
