@@ -275,9 +275,22 @@ def bear_dialogue():
     return True
 
 
-def update_quest(quest):
-    quest_win = c.newwin(23, 19, 0, 60)
+def update_quest(quest: bool):
+    """
+    Updates and displays current quest in quest window
+
+    Args:
+        quest (bool): Bool indicating whether a quest is in progress
+    """
+    quest_win = c.newwin(23, 19, 0, 61)
     quest_win.border()
+
+    quest_win.addstr(2, 7, "QUESTS")
+
+    if quest:
+        quest_win.addstr(4, 1, "• Get the")
+        quest_win.addstr(5, 1, "  porridge from")
+        quest_win.addstr(6, 1, "  Goldilocks")
 
     quest_win.refresh()
 
@@ -358,8 +371,8 @@ def main(stdscr):
     # Set the inventory dictionary
     global inventory
     inventory = inventory()
-    update_quest(2)
     quest = False
+    update_quest(quest)
     while True:
         # main movement
         key = stdscr.getch()
@@ -374,7 +387,9 @@ def main(stdscr):
             BEAR_Y - 1, BEAR_Y + 2
         ):
             if not quest:
+                # Interact with bear and add to quest list
                 quest = bear_dialogue()
+                update_quest(quest)
 
         if key == c.KEY_LEFT or key == ord("a"):
             # Set previous player position to open space
