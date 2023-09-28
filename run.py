@@ -301,9 +301,11 @@ def main(stdscr):
     stdscr = c.initscr()  # Initialize curses module, returns window
     c.noecho()  # Prevents keystrokes being echoed on screen
     c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
-    c.curs_set(
-        0
-    )  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
+    if hasattr(c, "curs_set"):
+        try:
+            c.curs_set(0)  # make the cursor invisible
+        except:
+            pass  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
     stdscr.keypad(True)  # Allows screen to read keystrokes
     stdscr.nodelay(True)
     # color pairs
@@ -405,11 +407,9 @@ def main(stdscr):
                 y += 1
 
         # Update player position
-        pad.addstr(y + 12, x + 40, "asd")
+        pad.addstr(y + 12, x + 40, "❤")
         pad.refresh(y, x, 0, 0, 22, 60)
         # pad.refresh(y, x, 0, 0, 40, 155)
 
 
 wrapper(main)
-print("😀😁")
-print(emoji.emojize("Python is :thumbsup:", language="alias"))
