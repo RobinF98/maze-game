@@ -12,7 +12,7 @@ COLS = 80
 ESC = 27
 ENTER = 10
 # Bear spawn coordinates
-BEAR_X = random.randrange(190, 230)
+BEAR_X = random.randrange(190, 220)
 BEAR_Y = random.randrange(5, 44)
 
 
@@ -315,7 +315,8 @@ def update_quest(quest: bool):
         quest_win.addstr(4, 1, "• Get the")
         quest_win.addstr(5, 1, "  porridge from")
         quest_win.addstr(6, 1, "  Goldilocks")
-
+    else:
+        pass
     quest_win.refresh()
 
 
@@ -367,8 +368,8 @@ def main(stdscr):
     map = build_map(c.LINES * 2, (c.COLS - 1) * 2, 0.35)
 
     # set player spawn point to empty space
-    for row in range(23, 26):
-        for col in range(39, 42):
+    for row in range(22, 27):
+        for col in range(38, 43):
             map[row][col] = 0
 
     # set bear spawn point to empty space
@@ -402,9 +403,12 @@ def main(stdscr):
         key = stdscr.getch()
         if key == ESC:
             pause_menu(stdscr)
-
+        # Exits game if endwin has been called (from pause_menu)
         if key == ord("q") or c.isendwin():  # TODO: Remove "q" from this bit
             break
+        else:
+            # Refresh quest window after pause to remove pause window overlap
+            update_quest(quest)
 
         # Check if player is near bear:
         if x + 40 in range(BEAR_X - 2, BEAR_X + 3) and y + 12 in range(
