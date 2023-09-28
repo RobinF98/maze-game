@@ -172,8 +172,9 @@ def pause_menu(screen):
     options = ["Resume", "Help", "Exit"]
     highlight = 0
     key = 0
-    c.ungetch("0")
+    c.ungetch(c.KEY_DOWN)
     while True:
+        key = pause_win.getch()
         if key == ESC:
             break
         # highlight options
@@ -207,7 +208,6 @@ def pause_menu(screen):
             else:
                 # Add strings roughly in the center of the window
                 pause_win.addstr(6 + 3 * index, int(30 - len(option) / 2), f"{option}")
-        key = pause_win.getch()
         pause_win.refresh()
 
 
