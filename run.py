@@ -58,6 +58,7 @@ def draw_map(screen, map: list[list[int]], colors: dict):
                 screen.addch(row, col, "•", list(colors.values())[map[row][col]])
             else:
                 screen.addch(row, col, " ", list(colors.values())[map[row][col]])
+    screen.addstr(BEAR_Y, BEAR_X, "🐻")
 
 
 def smooth_map(map: list[list[int]]):
@@ -175,10 +176,10 @@ def pause_menu(screen):
         if key == ESC:
             break
         # highlight options
-        if key == c.KEY_DOWN:
+        if key == c.KEY_DOWN or key == ord("s"):
             highlight = (highlight + 1) % 4
 
-        if key == c.KEY_UP:
+        if key == c.KEY_UP or key == ord("w"):
             highlight = (highlight - 1) % 3
 
         if key == ord(" ") or key == ENTER:
@@ -219,7 +220,7 @@ def help_menu(screen):
     help_win.addstr(2, 28, "HELP")
     help_list = [
         " ",
-        "• Walk around using the arrow keys",
+        "• Walk around using the arrow keys or wasd",
         "• Interact using 'E'",
         "• Access inventory using 'I'",
         "• Explore the map, if you get stuck",
@@ -370,7 +371,7 @@ def main(stdscr):
             if not quest:
                 quest = bear_dialogue()
 
-        if key == c.KEY_LEFT:
+        if key == c.KEY_LEFT or key == ord("a"):
             # Set previous player position to open space
             pad.addstr(y + 12, x + 40, " ")
             # Detect if map tile is wall
@@ -383,7 +384,7 @@ def main(stdscr):
                     )  # TODO: Add update inventory function that checks if arg is in inventory items list and increments count
                 x -= 1
 
-        if key == c.KEY_RIGHT:
+        if key == c.KEY_RIGHT or key == ord("d"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12][x + 40 + 1]
             if next_tile != 1:
@@ -391,7 +392,7 @@ def main(stdscr):
                     inventory = update_inventory("rock", inventory)
                 x += 1
 
-        if key == c.KEY_UP:
+        if key == c.KEY_UP or key == ord("w"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12 - 1][x + 40]
             if next_tile != 1:
@@ -399,7 +400,7 @@ def main(stdscr):
                     inventory = update_inventory("rock", inventory)
                 y -= 1
 
-        if key == c.KEY_DOWN:
+        if key == c.KEY_DOWN or key == ord("s"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12 + 1][x + 40]
             if next_tile != 1:
