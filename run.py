@@ -172,8 +172,8 @@ def pause_menu(screen):
     options = ["Resume", "Help", "Exit"]
     highlight = 0
     key = 0
+    c.ungetch("0")
     while True:
-        c.ungetch("0")
         if key == ESC:
             break
         # highlight options
