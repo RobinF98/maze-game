@@ -58,6 +58,7 @@ def draw_map(screen, map: list[list[int]], colors: dict):
                 screen.addch(row, col, "•", list(colors.values())[map[row][col]])
             else:
                 screen.addch(row, col, " ", list(colors.values())[map[row][col]])
+    # add bear and bear adjacent tile to
     screen.addstr(BEAR_Y, BEAR_X, "🐻")
 
 
@@ -130,6 +131,8 @@ def spawn_bear(map, x_limit):
     #     map[10][coord] = 2
     #     break
     map[BEAR_Y][BEAR_X] = 2
+    # Bear emoji width is 2, set to 4 to allow for collision detection in main
+    map[BEAR_Y][BEAR_X + 1] = 4
 
     # shortcut ---- DELETE THIS THISNRIHSWIOHASOFIHSqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdwqdqwdqwdqwdqwdqwdqwdqdwqd
     for i in range(1, len(map[20]) - 1):
@@ -172,7 +175,7 @@ def pause_menu(screen):
     options = ["Resume", "Help", "Exit"]
     highlight = 0
     key = 0
-    c.ungetch(c.KEY_DOWN)
+
     while True:
         key = pause_win.getch()
         if key == ESC:
@@ -306,21 +309,21 @@ def main(stdscr):
     c.cbreak()  # Allows keystrokes to be read instantly without needing to hit return
     if hasattr(c, "curs_set"):
         try:
-            c.curs_set(0)  # make the cursor invisible
+            c.curs_set(0)  # Hide the cursor
         except:
-            pass  # Hides flashing cursor  TODO: figure out how to hide cursor in heroku
+            pass
     stdscr.keypad(True)  # Allows screen to read keystrokes
-    stdscr.nodelay(True)
+    stdscr.nodelay(True)  # getch will return -1, not ERR, if no key is pressed
     # color pairs
     c.init_pair(1, c.COLOR_WHITE, c.COLOR_BLACK)
     c.init_pair(2, c.COLOR_BLACK, c.COLOR_WHITE)
     c.init_pair(3, c.COLOR_WHITE, c.COLOR_BLUE)
-    c.init_pair(4, c.COLOR_WHITE, c.COLOR_BLACK)
     colors = {
         "w_black": c.color_pair(1),
         "black_w": c.color_pair(2),
         "w_blue": c.color_pair(3),
-        "w_red": c.color_pair(4),
+        "w_black_rock": c.color_pair(1),
+        "w_black_bear": c.color_pair(1),
     }
 
     map = build_map(c.LINES * 2, (c.COLS - 1) * 2, 0.35)
@@ -331,8 +334,8 @@ def main(stdscr):
             map[row][col] = 0
 
     # set bear spawn point to empty space
-    for row in range(BEAR_Y - 1, BEAR_Y + 2):
-        for col in range(BEAR_X - 1, BEAR_X + 2):
+    for row in range(BEAR_Y - 1, BEAR_Y + 3):
+        for col in range(BEAR_X - 1, BEAR_X + 3):
             map[row][col] = 0
 
     pad = c.newpad(c.LINES * 2, c.COLS * 2)
@@ -375,9 +378,10 @@ def main(stdscr):
         if key == c.KEY_LEFT or key == ord("a"):
             # Set previous player position to open space
             pad.addstr(y + 12, x + 40, " ")
-            # Detect if map tile is wall
+            # Detect if map tile is wall or bear or bear adjacent
+            # (bear emoji character has a width of 2, so need to check 2 tiles)
             next_tile = map[y + 12][x + 40 - 1]
-            if next_tile != 1:
+            if next_tile not in [1, 2, 4]:
                 # Detect if next tile is a rock
                 if next_tile == 3:
                     inventory = update_inventory(
@@ -388,7 +392,7 @@ def main(stdscr):
         if key == c.KEY_RIGHT or key == ord("d"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12][x + 40 + 1]
-            if next_tile != 1:
+            if next_tile not in [1, 2, 4]:
                 if next_tile == 3:
                     inventory = update_inventory("rock", inventory)
                 x += 1
@@ -396,7 +400,7 @@ def main(stdscr):
         if key == c.KEY_UP or key == ord("w"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12 - 1][x + 40]
-            if next_tile != 1:
+            if next_tile not in [1, 2, 4]:
                 if next_tile == 3:
                     inventory = update_inventory("rock", inventory)
                 y -= 1
@@ -404,7 +408,7 @@ def main(stdscr):
         if key == c.KEY_DOWN or key == ord("s"):
             pad.addstr(y + 12, x + 40, " ")
             next_tile = map[y + 12 + 1][x + 40]
-            if next_tile != 1:
+            if next_tile not in [1, 2, 4]:
                 if next_tile == 3:
                     inventory = update_inventory("rock", inventory)
                 y += 1
