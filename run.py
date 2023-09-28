@@ -135,11 +135,6 @@ def spawn_bear(map, x_limit):
     map[BEAR_Y][BEAR_X + 1] = 4
     map[BEAR_Y][BEAR_X - 1] = 4
 
-    # shortcut ---- DELETE THIS THISNRIHSWIOHASOFIHSqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdwqdqwdqwdqwdqwdqwdqwdqdwqd
-    for i in range(1, len(map[20]) - 1):
-        map[15][i] = 0
-    # asdddddwqeeeddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-
     return map
 
 
@@ -160,6 +155,25 @@ def update_inventory(item: str, inv: dict):
     inv_win.addstr(0, 30, f"{item}: {new_inventory}")
     inv_win.refresh()
     return inv
+
+
+def show_inventory(inv: dict):
+    """
+    Displays window with current inventory and allows user to scroll through inventory
+    Args:
+        inv (dict): The current player inventory
+    """
+    inv_disp_win = c.newwin(18, 60, 3, 10)
+    inv_disp_win.border()
+    inv_disp_win.addstr(2, 25, "INVENTORY")
+
+    # Print items in inv dict
+    for index, item in enumerate(inv):
+        if inv[item] > 0:
+            inv_disp_win.addstr(5 + index * 2, 7, f"{item}: {inv[item]}")
+    inv_disp_win.refresh()
+
+    inv_disp_win.getch()
 
 
 def pause_menu(screen):
@@ -183,7 +197,7 @@ def pause_menu(screen):
             break
         # highlight options
         if key == c.KEY_DOWN or key == ord("s"):
-            highlight = (highlight + 1) % 4
+            highlight = (highlight + 1) % 3
 
         if key == c.KEY_UP or key == ord("w"):
             highlight = (highlight - 1) % 3
@@ -260,7 +274,6 @@ def bear_dialogue():
         bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
         bear_win.refresh()
         key = bear_win.getch()
-    # TODO: fix inf loop inconsolable, clear screen after each Inconsolable, exit dialogue after 3 inconsolable's, prevent re running dialogue after exit (with call to quest() or a bool or something)
 
     bear_win.addstr(6, 2, f"{dialogue[3]}")
 
@@ -271,8 +284,7 @@ def bear_dialogue():
             bear_win.border()
             bear_win.addstr(2, 2, f"{dialogue[4]}")
             bear_win.refresh()
-            sleep(1)
-            # bear_win.getch()
+            bear_win.getch()
             break
         else:
             pass
@@ -388,7 +400,7 @@ def main(stdscr):
             break
 
         # Check if player is near bear:
-        if x + 40 in range(BEAR_X - 2, BEAR_X + 2) and y + 12 in range(
+        if x + 40 in range(BEAR_X - 2, BEAR_X + 3) and y + 12 in range(
             BEAR_Y - 1, BEAR_Y + 2
         ):
             if not quest:
@@ -405,9 +417,7 @@ def main(stdscr):
             if next_tile not in [1, 2, 4]:
                 # Detect if next tile is a rock
                 if next_tile == 3:
-                    inventory = update_inventory(
-                        "rock", inventory
-                    )  # TODO: Add update inventory function that checks if arg is in inventory items list and increments count
+                    inventory = update_inventory("rock", inventory)
                 x -= 1
 
         if key == c.KEY_RIGHT or key == ord("d"):
@@ -433,7 +443,12 @@ def main(stdscr):
                 if next_tile == 3:
                     inventory = update_inventory("rock", inventory)
                 y += 1
-
+        if key == ord("i") or key == ord("I"):
+            # Show inventory
+            show_inventory(inventory)
+            # run update quest to ensure quest window displays properly after
+            # show_inventory call
+            update_quest(quest)
         # Update player position
         pad.addstr(y + 12, x + 40, "❤")
         pad.refresh(y, x, 0, 0, 22, 60)
