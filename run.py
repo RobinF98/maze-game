@@ -463,7 +463,7 @@ def main(stdscr):
             update_quest(quest)
         # Update player position
         pad.addstr(y + 12, x + 40, "❤")
-        coords(x + 40, y + 12)
+        # coords(x + 40, y + 12)
         pad.refresh(y, x, 0, 0, 22, 60)
         # pad.refresh(y, x, 0, 0, 40, 155)
 
