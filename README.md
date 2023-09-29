@@ -20,3 +20,5 @@ This is a small terminal adventure game
 
 - Pause menu takes a second to appear after esc press in Heroku deployment
   - Unsure if this is code issue or Heroku issue. If code issue, cannot recreate in any other terminal environment
+- Game is incredibly slow on Heroku - possibly due to infinite game loop refreshing constantly
+  - FIX: Only update game pad on user input
