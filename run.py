@@ -460,7 +460,7 @@ def main(stdscr):
             show_inventory(inventory)
             # run update quest to ensure quest window displays properly after
             # show_inventory call
-            update_quest(quest)
+            # update_quest(quest)
         # Update player position
         pad.addstr(y + 12, x + 40, "❤")
         # coords(x + 40, y + 12)
