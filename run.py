@@ -7,14 +7,15 @@ from curses import wrapper
 from time import sleep
 from pprint import pprint
 
-ROWS = 24
-COLS = 80
+ROWS = 75
+COLS = 250
 ESC = 27
 ENTER = 10
-# Bear spawn coordinates
-# BEAR_X = random.randrange(190, 220)
-BEAR_X = 100
-BEAR_Y = random.randrange(5, 44)
+# Bear & Goldilocks spawn coordinates
+BEAR_X = random.randrange(200, 240)
+BEAR_Y = random.randrange(5, 65)
+GOLDILOCKS_X = 40
+GOLDILOCKS_Y = 24
 
 
 def build_map(height, width, fill_percent):
@@ -124,16 +125,9 @@ def spawn_bear(map, x_limit):
         map (_list_): Map 2D list
         x_limit (_int_): X coord limit for spawn location
     """
-    # y coord offset from horizontal map boundaries
-    random_y = random.randint(3, ROWS - 3)
-
-    # loop through subsection of map within rightmost wall and x_limit and along random_y
-    # for coord in range(158 , 159 - x_limit, -1):
-    #   if map[10][coord] == 0:
-    #     map[10][coord] = 2
-    #     break
     map[BEAR_Y][BEAR_X] = 2
-    # Bear emoji width is 2, set to 4 to allow for collision detection in main
+    # Bear emoji width is 2 units, set adjacent cell to 4 to prevent player/bear
+    #  overlap
     map[BEAR_Y][BEAR_X + 1] = 4
     map[BEAR_Y][BEAR_X - 1] = 4
 
@@ -366,7 +360,7 @@ def main(stdscr):
         "w_black_bear": c.color_pair(1),
     }
 
-    map = build_map(c.LINES * 2, (c.COLS - 1) * 2, 0.35)
+    map = build_map(ROWS, COLS, 0.35)
 
     # set player spawn point to empty space
     for row in range(22, 27):
@@ -378,7 +372,7 @@ def main(stdscr):
         for col in range(BEAR_X - 1, BEAR_X + 3):
             map[row][col] = 0
 
-    pad = c.newpad(c.LINES * 2, c.COLS * 2)
+    pad = c.newpad(ROWS + 1, COLS + 1)
 
     # Smooth the random map into something more cave shaped
     for ind in range(7):
@@ -463,7 +457,7 @@ def main(stdscr):
                 # show_inventory call
                 update_quest(quest)
             # Update player position
-            pad.addstr(y + 12, x + 40, "❤")
+            pad.addch(y + 12, x + 40, "❤")
             coords(x + 40, y + 12)
             pad.refresh(y, x, 0, 0, 22, 60)
             # pad.refresh(y, x, 0, 0, 40, 155)
