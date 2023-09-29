@@ -15,6 +15,10 @@ ENTER = 10
 BEAR_X = random.randrange(200, 240)
 BEAR_Y = random.randrange(5, 65)
 GOLDILOCKS_X = 40
+# TODO Okay sooooo goldilocks will be on screen form game start, spawning near player to promote map exploration.
+# SHe will be hidden by a window that contains wall blocks. after picking up quest and searching for g-locks, #
+# player will wander near enough to the hiding spot and see the window disappear, with the pad refreshing instantly.
+# Goldilocks will be visible and the player can approach
 GOLDILOCKS_Y = 24
 
 
@@ -89,7 +93,7 @@ def count_neighbours(map, row, col, type):
     """
       Counts number of tiles neighbouring map[row][col] of type "type" (wall or space)
       Args:
-        map (_list_): Map 2D list
+        map (list): Map 2D list
         row (int): Tile row index
         col (int): Tile column index
     type (int): 1 or 0, wall or space
@@ -122,14 +126,37 @@ def spawn_bear(map, x_limit):
     """
     Spawns a bear for the player to interact with
     Args:
-        map (_list_): Map 2D list
-        x_limit (_int_): X coord limit for spawn location
+        map (list): Map 2D list
+        x_limit (int): X coord limit for spawn location
+    Returns:
+        Returns:
+        map (2D list): The 2D list containing the map
     """
     map[BEAR_Y][BEAR_X] = 2
-    # Bear emoji width is 2 units, set adjacent cell to 4 to prevent player/bear
+    # Bear emoji width is 2 units, set adjacent cells to 4 to prevent player/bear
     #  overlap
     map[BEAR_Y][BEAR_X + 1] = 4
     map[BEAR_Y][BEAR_X - 1] = 4
+
+    return map
+
+
+def spawn_goldilocks(map: list[list[int]]):
+    """
+    Spawns goldilocks and porridge by adding them to the map list
+    Args:
+        map (2D list): The 2D list containing the map
+    Returns:
+        map (2D list): The 2D list containing the map
+    """
+    # Goldilocks adjacent cells (player can't move onto cell = 5)
+    for y in range(22, 26):
+        for x in range(39, 42):
+            map[y][x] = 5
+
+    # goldilocks & porridge placeholder
+    map[25][40] = 2
+    map[23][40] = 2
 
     return map
 
@@ -355,7 +382,7 @@ def main(stdscr):
     colors = {
         "w_black": c.color_pair(1),
         "black_w": c.color_pair(2),
-        "w_blue": c.color_pair(3),
+        "w_black_goldilocks": c.color_pair(1),
         "w_black_rock": c.color_pair(1),
         "w_black_bear": c.color_pair(1),
     }
@@ -380,6 +407,7 @@ def main(stdscr):
 
     map = spawn_bear(map, 10)
     map = spawn_rock(map)
+    map = spawn_goldilocks(map)
     # Initial screen position
     x, y = 0, 12
     # Tile that player moves to
@@ -392,7 +420,11 @@ def main(stdscr):
     global inventory
     inventory = inventory()
     quest = False
+    # Generate quest window
     update_quest(quest)
+    # will be set to 4 after goldilocks is spawned to prevent player/goldilocks
+    # overlap:
+    goldilocks = 1
     while True:
         # main movement
         key = stdscr.getch()
@@ -418,10 +450,10 @@ def main(stdscr):
             if key == c.KEY_LEFT or key == ord("a"):
                 # Set previous player position to open space
                 pad.addstr(y + 12, x + 40, " ")
-                # Detect if map tile is wall or bear or bear adjacent
+                # Detect if tile is wall/bear/goldilocks/bear adjacent
                 # (bear emoji character has a width of 2, so need to check 2 tiles)
                 next_tile = map[y + 12][x + 40 - 1]
-                if next_tile not in [1, 2, 4]:
+                if next_tile not in [1, 2, 4, goldilocks]:
                     # Detect if next tile is a rock
                     if next_tile == 3:
                         inventory = update_inventory("rock", inventory)
@@ -430,7 +462,7 @@ def main(stdscr):
             if key == c.KEY_RIGHT or key == ord("d"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12][x + 40 + 1]
-                if next_tile not in [1, 2, 4]:
+                if next_tile not in [1, 2, 4, goldilocks]:
                     if next_tile == 3:
                         inventory = update_inventory("rock", inventory)
                     x += 1
@@ -438,7 +470,7 @@ def main(stdscr):
             if key == c.KEY_UP or key == ord("w"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 - 1][x + 40]
-                if next_tile not in [1, 2, 4]:
+                if next_tile not in [1, 2, 4, goldilocks]:
                     if next_tile == 3:
                         inventory = update_inventory("rock", inventory)
                     y -= 1
@@ -446,7 +478,7 @@ def main(stdscr):
             if key == c.KEY_DOWN or key == ord("s"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 + 1][x + 40]
-                if next_tile not in [1, 2, 4]:
+                if next_tile not in [1, 2, 4, goldilocks]:
                     if next_tile == 3:
                         inventory = update_inventory("rock", inventory)
                     y += 1
