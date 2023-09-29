@@ -402,70 +402,71 @@ def main(stdscr):
     while True:
         # main movement
         key = stdscr.getch()
-        if key == ESC:
-            pause_menu(stdscr)
-        # Exits game if endwin has been called (from pause_menu)
-        if key == ord("q") or c.isendwin():  # TODO: Remove "q" from this bit
-            break
-        else:
-            # Refresh quest window after pause to remove pause window overlap
-            update_quest(quest)
-
-        # Check if player is near bear:
-        if x + 40 in range(BEAR_X - 2, BEAR_X + 3) and y + 12 in range(
-            BEAR_Y - 1, BEAR_Y + 2
-        ):
-            if not quest:
-                # Interact with bear and add to quest list
-                quest = bear_dialogue()
+        if key != -1:
+            if key == ESC:
+                pause_menu(stdscr)
+            # Exits game if endwin has been called (from pause_menu)
+            if key == ord("q") or c.isendwin():  # TODO: Remove "q" from this bit
+                break
+            else:
+                # Refresh quest window after pause to remove pause window overlap
                 update_quest(quest)
 
-        if key == c.KEY_LEFT or key == ord("a"):
-            # Set previous player position to open space
-            pad.addstr(y + 12, x + 40, " ")
-            # Detect if map tile is wall or bear or bear adjacent
-            # (bear emoji character has a width of 2, so need to check 2 tiles)
-            next_tile = map[y + 12][x + 40 - 1]
-            if next_tile not in [1, 2, 4]:
-                # Detect if next tile is a rock
-                if next_tile == 3:
-                    inventory = update_inventory("rock", inventory)
-                x -= 1
+            # Check if player is near bear:
+            if x + 40 in range(BEAR_X - 2, BEAR_X + 3) and y + 12 in range(
+                BEAR_Y - 1, BEAR_Y + 2
+            ):
+                if not quest:
+                    # Interact with bear and add to quest list
+                    quest = bear_dialogue()
+                    update_quest(quest)
 
-        if key == c.KEY_RIGHT or key == ord("d"):
-            pad.addstr(y + 12, x + 40, " ")
-            next_tile = map[y + 12][x + 40 + 1]
-            if next_tile not in [1, 2, 4]:
-                if next_tile == 3:
-                    inventory = update_inventory("rock", inventory)
-                x += 1
+            if key == c.KEY_LEFT or key == ord("a"):
+                # Set previous player position to open space
+                pad.addstr(y + 12, x + 40, " ")
+                # Detect if map tile is wall or bear or bear adjacent
+                # (bear emoji character has a width of 2, so need to check 2 tiles)
+                next_tile = map[y + 12][x + 40 - 1]
+                if next_tile not in [1, 2, 4]:
+                    # Detect if next tile is a rock
+                    if next_tile == 3:
+                        inventory = update_inventory("rock", inventory)
+                    x -= 1
 
-        if key == c.KEY_UP or key == ord("w"):
-            pad.addstr(y + 12, x + 40, " ")
-            next_tile = map[y + 12 - 1][x + 40]
-            if next_tile not in [1, 2, 4]:
-                if next_tile == 3:
-                    inventory = update_inventory("rock", inventory)
-                y -= 1
+            if key == c.KEY_RIGHT or key == ord("d"):
+                pad.addstr(y + 12, x + 40, " ")
+                next_tile = map[y + 12][x + 40 + 1]
+                if next_tile not in [1, 2, 4]:
+                    if next_tile == 3:
+                        inventory = update_inventory("rock", inventory)
+                    x += 1
 
-        if key == c.KEY_DOWN or key == ord("s"):
-            pad.addstr(y + 12, x + 40, " ")
-            next_tile = map[y + 12 + 1][x + 40]
-            if next_tile not in [1, 2, 4]:
-                if next_tile == 3:
-                    inventory = update_inventory("rock", inventory)
-                y += 1
-        if key == ord("i") or key == ord("I"):
-            # Show inventory
-            show_inventory(inventory)
-            # run update quest to ensure quest window displays properly after
-            # show_inventory call
-            # update_quest(quest)
-        # Update player position
-        pad.addstr(y + 12, x + 40, "❤")
-        # coords(x + 40, y + 12)
-        pad.refresh(y, x, 0, 0, 22, 60)
-        # pad.refresh(y, x, 0, 0, 40, 155)
+            if key == c.KEY_UP or key == ord("w"):
+                pad.addstr(y + 12, x + 40, " ")
+                next_tile = map[y + 12 - 1][x + 40]
+                if next_tile not in [1, 2, 4]:
+                    if next_tile == 3:
+                        inventory = update_inventory("rock", inventory)
+                    y -= 1
+
+            if key == c.KEY_DOWN or key == ord("s"):
+                pad.addstr(y + 12, x + 40, " ")
+                next_tile = map[y + 12 + 1][x + 40]
+                if next_tile not in [1, 2, 4]:
+                    if next_tile == 3:
+                        inventory = update_inventory("rock", inventory)
+                    y += 1
+            if key == ord("i") or key == ord("I"):
+                # Show inventory
+                show_inventory(inventory)
+                # run update quest to ensure quest window displays properly after
+                # show_inventory call
+                update_quest(quest)
+            # Update player position
+            pad.addstr(y + 12, x + 40, "❤")
+            coords(x + 40, y + 12)
+            pad.refresh(y, x, 0, 0, 22, 60)
+            # pad.refresh(y, x, 0, 0, 40, 155)
 
 
 wrapper(main)
