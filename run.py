@@ -14,12 +14,14 @@ ENTER = 10
 # Bear & Goldilocks spawn coordinates
 BEAR_X = random.randrange(200, 240)
 BEAR_Y = random.randrange(5, 65)
-GOLDILOCKS_X = 40
-# TODO Okay sooooo goldilocks will be on screen form game start, spawning near player to promote map exploration.
+GOLDILOCKS_X = 50
+# TODO Okay sooooo goldilocks will be on screen from game start, spawning near player spawn to promote map exploration.
 # SHe will be hidden by a window that contains wall blocks. after picking up quest and searching for g-locks, #
 # player will wander near enough to the hiding spot and see the window disappear, with the pad refreshing instantly.
 # Goldilocks will be visible and the player can approach
-GOLDILOCKS_Y = 24
+GOLDILOCKS_Y = 30
+PORRIDGE_X = 50
+PORRIDGE_Y = 28
 
 
 def build_map(height, width, fill_percent):
@@ -52,7 +54,7 @@ def build_map(height, width, fill_percent):
 def draw_map(screen, map: list[list[int]], colors: dict):
     """
     Draws the map "map" on the screen "screen", using color pairs
-    found in the colors list
+    found in the colors list. Adds in bear, goldilocks, and porridge avatars
     Args:
       screen (window): The window on which the map is drawn
       map (list): Map 2D list
@@ -65,9 +67,10 @@ def draw_map(screen, map: list[list[int]], colors: dict):
                 screen.addch(row, col, "•", list(colors.values())[map[row][col]])
             else:
                 screen.addch(row, col, " ", list(colors.values())[map[row][col]])
-    # add bear and bear adjacent tile to
+    # add avatars and adjacent tiles to map
     screen.addstr(BEAR_Y, BEAR_X, "🐻")
-
+    screen.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "👧")
+    screen.addstr(PORRIDGE_Y, PORRIDGE_X, "🥣")
 
 def smooth_map(map: list[list[int]]):
     """
@@ -149,14 +152,14 @@ def spawn_goldilocks(map: list[list[int]]):
     Returns:
         map (2D list): The 2D list containing the map
     """
-    # Goldilocks adjacent cells (player can't move onto cell = 5)
-    for y in range(22, 26):
-        for x in range(39, 42):
-            map[y][x] = 5
+    # Goldilocks adjacent cells (player can't move onto cell = 4)
+    for y in range(GOLDILOCKS_Y - 2, GOLDILOCKS_Y + 1):
+        for x in range(GOLDILOCKS_X , GOLDILOCKS_X + 2):
+            map[y][x] = 4
 
     # goldilocks & porridge placeholder
-    map[25][40] = 2
-    map[23][40] = 2
+    map[GOLDILOCKS_Y][GOLDILOCKS_X] = 2
+    map[PORRIDGE_Y][PORRIDGE_X] = 2
 
     return map
 
@@ -384,7 +387,8 @@ def main(stdscr):
         "black_w": c.color_pair(2),
         "w_black_goldilocks": c.color_pair(1),
         "w_black_rock": c.color_pair(1),
-        "w_black_bear": c.color_pair(1),
+        "w_black_bear_adj": c.color_pair(1),
+        "w_black_goldilocks_adj": c.color_pair(1)
     }
 
     map = build_map(ROWS, COLS, 0.35)
@@ -399,6 +403,11 @@ def main(stdscr):
         for col in range(BEAR_X - 1, BEAR_X + 3):
             map[row][col] = 0
 
+    # set goldilocks spawn point to empty space
+    for row in range(GOLDILOCKS_Y - 1, GOLDILOCKS_Y + 3):
+        for col in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3):
+            map[row][col] = 0
+
     pad = c.newpad(ROWS + 1, COLS + 1)
 
     # Smooth the random map into something more cave shaped
@@ -407,7 +416,7 @@ def main(stdscr):
 
     map = spawn_bear(map, 10)
     map = spawn_rock(map)
-    map = spawn_goldilocks(map)
+    # map = spawn_goldilocks(map)
     # Initial screen position
     x, y = 0, 12
     # Tile that player moves to
@@ -424,7 +433,9 @@ def main(stdscr):
     update_quest(quest)
     # will be set to 4 after goldilocks is spawned to prevent player/goldilocks
     # overlap:
-    goldilocks = 1
+    goldilocks = 4
+    show_goldilocks = False
+
     while True:
         # main movement
         key = stdscr.getch()
@@ -444,7 +455,7 @@ def main(stdscr):
             ):
                 if not quest:
                     # Interact with bear and add to quest list
-                    quest = bear_dialogue()
+                    quest = bear_dialogue() # set quest to True
                     update_quest(quest)
 
             if key == c.KEY_LEFT or key == ord("a"):
@@ -488,8 +499,23 @@ def main(stdscr):
                 # run update quest to ensure quest window displays properly after
                 # show_inventory call
                 update_quest(quest)
+
+            # pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(show_goldilocks))
+
+            # # hide goldilocks (until quest is active)
+            if not show_goldilocks:
+                pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(1))
+                pad.addstr(PORRIDGE_Y, PORRIDGE_X, "  ", c.color_pair(1))
+                
+            if key == ord("g") or quest: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
+                show_goldilocks = True
+                pad.clear()
+                spawn_goldilocks(map)
+                draw_map(pad, map, colors)
+            
             # Update player position
             pad.addch(y + 12, x + 40, "❤")
+            
             coords(x + 40, y + 12)
             pad.refresh(y, x, 0, 0, 22, 60)
             # pad.refresh(y, x, 0, 0, 40, 155)
