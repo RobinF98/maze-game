@@ -289,6 +289,12 @@ def help_menu(screen):
 
 
 def bear_dialogue():
+    """
+        Generates window and dialogue with Baby Bear. 
+    Returns:
+        Bool (True): Returns true to set quest variable to true for 
+        quest initialisation 
+    """
     bear_win = c.newwin(10, 79, 13, 0)
     bear_win.border()
     dialogue = [
@@ -327,6 +333,10 @@ def bear_dialogue():
     return True
 
 def goldilocks_dialogue():
+    """
+    Generates window and dialogue with Goldilocks, and runs fight function to fight
+    with Goldilocks
+    """
     gold_win = c.newwin(10, 79, 13, 0)
     gold_win.border()
     dialogue = [
@@ -334,29 +344,84 @@ def goldilocks_dialogue():
         "❤ : HEY! You scared me",
         "I DON'T CARE. LEAVE ME AND MY PORRIDGE ALONE! : 👧",
         "❤ : That porridge belongs to 🐻, not you!",
-        "OH YEAH?? WHAT ARE YOU GOING TO DO ABOUT IT? : 👧"
+        "OH YEAH?? WHAT ARE YOU GOING TO DO ABOUT IT? : 👧",
+        "Press E to fight"
     ]
 
     # print dialogue line by line on each key press
     for index, str in enumerate(dialogue):
         if index % 2 == 0:
             gold_win.addstr(2 + index, 76 - len(dialogue[index]), f"{dialogue[index]}")
+        else:
+            gold_win.addstr(2 + index, 2, f"{dialogue[index]}")
         gold_win.refresh()
         key = gold_win.getch()
-
-    gold_win.addstr(6, 2, f"{dialogue[3]}")
 
     while True:
         key = gold_win.getch()
         if key == ord("e") or key == ord("E"):
             gold_win.clear()
-            gold_win.border()
-            gold_win.addstr(2, 2, f"{dialogue[4]}")
-            gold_win.refresh()
-            gold_win.getch()
+            fight_goldilocks()
             break
         else:
             pass
+
+def fight_goldilocks():
+    """
+    Generates new window in which the player fights goldilocks
+    """
+    fight_win  = c.newwin(18, 60, 3, 10)
+    fight_win.border()
+
+    win = False
+    defeat = False
+
+    # GOLDILOCKS INITIAL POSITION
+    goldilocks_x = 1
+    goldilocks_y = 1
+
+    # PLAYER INITIAL POSITION
+    player_x =  30
+    player_y = 17
+
+    fight_win.nodelay(True)
+    fps = 10
+    direction = -1
+    projectiles = []
+    class Projectile():
+        def __init__(self, y, x, speed):
+            self.y = y
+            self.x = x
+            self.speed = speed
+        
+        def update_position(self):
+            self.y += self.speed
+            return self.y
+        
+    # Main movement:
+    while not win and not defeat:
+        fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
+        if goldilocks_x == 57 or goldilocks_x == 1:
+            direction *= -1
+        goldilocks_x += direction
+        fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
+
+        if random.randrange(100) > 80:
+            projectiles.append(Projectile(goldilocks_y, goldilocks_x, 1))
+        for projectile in projectiles:
+            fight_win.addstr(projectile.y, projectile.x, " ")
+            projectile.update_position()
+            fight_win.addstr(projectile.y, projectile.x, "|") 
+
+        fight_win.refresh()
+        key = fight_win.getch()
+        if key == ord("m"):
+            break
+        
+        sleep(1/fps)
+        
+
+
 
 
 def update_quest(quest: bool):
@@ -487,17 +552,6 @@ def main(stdscr):
                 # Refresh quest window after pause to remove pause window overlap
                 update_quest(quest)
 
-            # Check if player is near bear:
-            if not quest:    
-                if (x + 40 in range(BEAR_X - 2, BEAR_X + 3) and
-                        y + 12 in range(BEAR_Y - 1, BEAR_Y + 2)):
-                    # Interact with bear and add to quest list
-                    quest = bear_dialogue() # set quest to True
-                    update_quest(quest)
-
-            
-                    
-
             if key == c.KEY_LEFT or key == ord("a"):
                 # Set previous player position to open space
                 pad.addstr(y + 12, x + 40, " ")
@@ -533,14 +587,13 @@ def main(stdscr):
                     if next_tile == 3:
                         inventory = update_inventory("rock", inventory)
                     y += 1
+
             if key == ord("i") or key == ord("I"):
                 # Show inventory
                 show_inventory(inventory)
                 # run update quest to ensure quest window displays properly after
                 # show_inventory call
                 update_quest(quest)
-
-            # pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(show_goldilocks))
 
             # # hide goldilocks (until quest is active)
             if not show_goldilocks:
@@ -560,14 +613,24 @@ def main(stdscr):
             coords(x + 40, y + 12)
             pad.refresh(y, x, 0, 0, 22, 60)
 
-            if quest or show_goldilocks and dialogue:
+            # Check if player is near bear:
+            if not quest:    
+                if (x + 40 in range(BEAR_X - 2, BEAR_X + 3) and
+                        y + 12 in range(BEAR_Y - 1, BEAR_Y + 2)):
+                    # Interact with bear and add to quest list
+                    quest = bear_dialogue() # set quest to True
+                    update_quest(quest)
+
+            # Check if player is near goldilocks
+            if quest or show_goldilocks and dialogue: ### REMOVESHOW GOLDILOCKS OPTION FROM THIS ONE LAFSADASDASDSAD
                 if (x + 40 in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3) and
                         y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
                     goldilocks_dialogue()
                     dialogue = False
             if key == ord("l"):
                 # bear_dialogue()
-                dialogue = True
+                # dialogue = True
+                fight_goldilocks()
             # pad.refresh(y, x, 0, 0, 40, 155)
 
 
