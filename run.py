@@ -292,9 +292,9 @@ def bear_dialogue():
     bear_win = c.newwin(10, 79, 13, 0)
     bear_win.border()
     dialogue = [
-        "Baby Bear: BOooo HOOooo :(",
-        "You: Hey hey, what's the matter? ö",
-        "Baby Bear: Goldilocks stole my porridge, and I'm so hungwy :(",
+        "BOooo HOOooo : 🐻",
+        "❤ : Hey hey, what's the matter? ö",
+        "Goldilocks stole my porridge, and I'm so hungwy : 🐻",
         "Press E to console",
         "Baby Bear is unconsolable",
     ]
@@ -303,7 +303,10 @@ def bear_dialogue():
     for index, str in enumerate(dialogue):
         if index == 3:
             break
-        bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
+        if index == 1:
+            bear_win.addstr(2 + index, 2, f"{dialogue[index]}")
+        else:
+            bear_win.addstr(2 + index, 76 - len(dialogue[index]), f"{dialogue[index]}")
         bear_win.refresh()
         key = bear_win.getch()
 
@@ -322,6 +325,38 @@ def bear_dialogue():
             pass
 
     return True
+
+def goldilocks_dialogue():
+    gold_win = c.newwin(10, 79, 13, 0)
+    gold_win.border()
+    dialogue = [
+        "STAY AWAY FROM MY PORRIDGE !!! : 👧",
+        "❤ : HEY! You scared me",
+        "I DON'T CARE. LEAVE ME AND MY PORRIDGE ALONE! : 👧",
+        "❤ : That porridge belongs to 🐻, not you!",
+        "OH YEAH?? WHAT ARE YOU GOING TO DO ABOUT IT? : 👧"
+    ]
+
+    # print dialogue line by line on each key press
+    for index, str in enumerate(dialogue):
+        if index % 2 == 0:
+            gold_win.addstr(2 + index, 76 - len(dialogue[index]), f"{dialogue[index]}")
+        gold_win.refresh()
+        key = gold_win.getch()
+
+    gold_win.addstr(6, 2, f"{dialogue[3]}")
+
+    while True:
+        key = gold_win.getch()
+        if key == ord("e") or key == ord("E"):
+            gold_win.clear()
+            gold_win.border()
+            gold_win.addstr(2, 2, f"{dialogue[4]}")
+            gold_win.refresh()
+            gold_win.getch()
+            break
+        else:
+            pass
 
 
 def update_quest(quest: bool):
@@ -414,9 +449,10 @@ def main(stdscr):
     for ind in range(7):
         map = smooth_map(map)
 
+    # Add bear and rocks to map
     map = spawn_bear(map, 10)
     map = spawn_rock(map)
-    # map = spawn_goldilocks(map)
+
     # Initial screen position
     x, y = 0, 12
     # Tile that player moves to
@@ -435,6 +471,8 @@ def main(stdscr):
     # overlap:
     goldilocks = 4
     show_goldilocks = False
+    done = False
+    dialogue = True
 
     while True:
         # main movement
@@ -450,13 +488,15 @@ def main(stdscr):
                 update_quest(quest)
 
             # Check if player is near bear:
-            if x + 40 in range(BEAR_X - 2, BEAR_X + 3) and y + 12 in range(
-                BEAR_Y - 1, BEAR_Y + 2
-            ):
-                if not quest:
+            if not quest:    
+                if (x + 40 in range(BEAR_X - 2, BEAR_X + 3) and
+                        y + 12 in range(BEAR_Y - 1, BEAR_Y + 2)):
                     # Interact with bear and add to quest list
                     quest = bear_dialogue() # set quest to True
                     update_quest(quest)
+
+            
+                    
 
             if key == c.KEY_LEFT or key == ord("a"):
                 # Set previous player position to open space
@@ -507,17 +547,27 @@ def main(stdscr):
                 pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(1))
                 pad.addstr(PORRIDGE_Y, PORRIDGE_X, "  ", c.color_pair(1))
                 
-            if key == ord("g") or quest: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
+            if key == ord("g") or quest and not done: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
                 show_goldilocks = True
                 pad.clear()
                 spawn_goldilocks(map)
                 draw_map(pad, map, colors)
+                done = True
             
             # Update player position
             pad.addch(y + 12, x + 40, "❤")
             
             coords(x + 40, y + 12)
             pad.refresh(y, x, 0, 0, 22, 60)
+
+            if quest or show_goldilocks and dialogue:
+                if (x + 40 in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3) and
+                        y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
+                    goldilocks_dialogue()
+                    dialogue = False
+            if key == ord("l"):
+                # bear_dialogue()
+                dialogue = True
             # pad.refresh(y, x, 0, 0, 40, 155)
 
 
