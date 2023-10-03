@@ -228,10 +228,10 @@ def pause_menu(screen):
         if key == ESC:
             break
         # highlight options
-        if key == c.KEY_DOWN or key == ord("s"):
+        if key == c.KEY_DOWN or key == ord("s") or key == ord("S"):
             highlight = (highlight + 1) % 3
 
-        if key == c.KEY_UP or key == ord("w"):
+        if key == c.KEY_UP or key == ord("w") or key == ord("W"):
             highlight = (highlight - 1) % 3
 
         if key == ord(" ") or key == ENTER:
@@ -361,7 +361,7 @@ def goldilocks_dialogue():
         key = gold_win.getch()
         if key == ord("e") or key == ord("E"):
             gold_win.clear()
-            fight_goldilocks()
+            return fight_goldilocks()
             break
         else:
             pass
@@ -370,24 +370,36 @@ def fight_goldilocks():
     """
     Generates new window in which the player fights goldilocks
     """
-    fight_win  = c.newwin(18, 60, 3, 10)
+    width = 60
+    
+    fight_win  = c.newwin(18, width, 3, 10)
     fight_win.keypad(True)
     fight_win.border()
+
     win = False
     defeat = False
 
     # GOLDILOCKS INITIAL POSITION
     goldilocks_x = 1
     goldilocks_y = 1
+    goldilocks_health = 3
+    goldilocks_hearts = "GOLDILOCKS: ❤ ❤ ❤"
+
+    fight_win.addstr(0, 21, f"{goldilocks_hearts}")
 
     # PLAYER INITIAL POSITION
     player_x =  30
     player_y = 16
+    player_health = 1
+    player_hearts = "YOU: ❤"
+
+    fight_win.addstr(17, 25, "PLAYER: ❤")
 
     fight_win.nodelay(True)
     
     fps = 10 # frames per second for goldilocks and projectile movement
-    goldilocks_direction = -1 # 
+    goldilocks_direction = -1 # initial direction for goldilocks movement
+    player_cooldown = 0 # Cooldown for player projectile firing, to prevent rapidfire
     projectiles = []
     key = 0
     class Projectile():
@@ -406,13 +418,14 @@ def fight_goldilocks():
             self.active = False
         
     # Main movement:
-    iterations_since_last = 0 # Records the number of iteretions since last projectile
+    goldilocks_cooldown = 0 # Records the number of iteretions since last projectile
                         # fired, so as not to overwhelm player with projectiles
     time_of_last = time.time() # Time of last goldilocks movement iteration
 
     while not win and not defeat:
         
         if time.time() - time_of_last > 1 / fps:
+            
             # Goldilocks Movement
             fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
             if goldilocks_x == 57 or goldilocks_x == 1:
@@ -420,48 +433,101 @@ def fight_goldilocks():
             goldilocks_x += goldilocks_direction
             fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
             
-            # Goldilocks projectile movement
-            if (random.randrange(100) > 80 and iterations_since_last > 8) or goldilocks_x == player_x: 
+            if ((random.randrange(100) > 70 and goldilocks_cooldown > 5) or
+                    goldilocks_x == player_x): 
+
                 projectiles.append(Projectile(goldilocks_y + 1, goldilocks_x, 1))
-                time_since_last = 0
+                goldilocks_cooldown = 0
+
+             # Projectile movement
             for projectile in projectiles:
                 fight_win.addstr(projectile.y, projectile.x, " ")
                 # prevent projectiles updating outside of the fight window
-                if projectile.y > 15: 
+                if projectile.y > 15 or projectile.y < 2: 
                     projectile.deactivate()
                     projectiles.remove(projectile)
                 else:
                     projectile.update_position()
-                    fight_win.addstr(projectile.y, projectile.x, "|") 
-            iterations_since_last += 1
+
+                    # Different projectiles for goldilocks/player
+                    if projectile.speed == 1:
+                        # Goldilocks projectile
+                        fight_win.addstr(projectile.y, projectile.x, "|") 
+                    else:
+                        # Player projectile
+                        fight_win.addstr(projectile.y, projectile.x, "•")
+                
+                # Goldilocks hit detection:
+                if projectile.y == goldilocks_y and projectile.x == goldilocks_x:
+                    goldilocks_health -= 1
+                
+                    if goldilocks_health == 2:
+                        goldilocks_hearts = "GOLDILOCKS: ❤ ❤  "
+                    if goldilocks_health == 1:
+                        goldilocks_hearts = "GOLDILOCKS: ❤    "
+                    if goldilocks_health == 0:
+                        goldilocks_hearts = "GOLDILOCKS:      "
+                        win = True 
+                    fight_win.addstr(0, 21, f"{goldilocks_hearts}")
+
+                # Player hit detection:
+                if projectile.y == player_y and projectile.x == player_x:
+                    fight_win.addstr(17, 25, "PLAYER:  ")
+                    defeat = True
+
+
+            goldilocks_cooldown += 1 # Prevent rapid fire
+            player_cooldown += 1 # Prevent rapid fire
             time_of_last = time.time()
 
         key = fight_win.getch()
 
         # Player movement
-        if key == c.KEY_LEFT:
+        if key == c.KEY_LEFT or key == ord("a") or key == ord("A"):
             if player_x != 2:
                 fight_win.addstr(player_y, player_x, " ")
                 player_x -= 1
 
-        if key == c.KEY_RIGHT:
+        if key == c.KEY_RIGHT or key == ord("d") or key == ord("D"):
             if player_x != 58:
                 fight_win.addstr(player_y, player_x, " ")
                 player_x += 1
-        
-        fight_win.addstr(player_y, player_x, "❤")
 
+        if  key == ord(" ") and player_cooldown > 5:
+                    projectiles.append(Projectile(player_y - 1, player_x, -1))
+                    player_cooldown = 0
+
+        fight_win.addstr(player_y, player_x, "❤")
+                
         fight_win.refresh()
 
-        if key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+        if win or key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+            c.flash()
+            time.sleep(0.2)
+            c.flash()
+            win_win = fight_win.derwin(7, 32, 5, 14)
+            win_win.border()
+            win_win.addstr(3,5, "GOLDILOCKS 👧 DEFEATED")
+            win_win.addstr(5, 2, "Press any key to keep moving")
+            win_win.getch()
+            return True
             break
+
+        if defeat or key == ord("p"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+            c.flash()
+            time.sleep(0.2)
+            c.flash()
+            defeat_win = fight_win.derwin(7, 32, 5, 14)
+            defeat_win.border()
+            defeat_win.addstr(3,12, "YOU DIED")
+            defeat_win.addstr(5, 4, "Press any key to restart")
+            restart = True
+            defeat_win.getch()
+            return restart
+            break
+        # if key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+        #     break
         
-        # sleep(1/fps)
-        
-
-
-
-
 def update_quest(quest: bool):
     """
     Updates and displays current quest in quest window
@@ -513,7 +579,10 @@ def main(stdscr):
         try:
             c.curs_set(0)  # Hide the cursor
         except:
-            pass
+            try:
+                c.curs_set(1)
+            except:
+                pass
     stdscr.keypad(True)  # Allows screen to read keystrokes
     stdscr.nodelay(True)  # getch will return -1, not ERR, if no key is pressed
     # color pairs
@@ -577,6 +646,8 @@ def main(stdscr):
     done = False
     dialogue = True
 
+    restart = False # Restart game on True
+
     while True:
         # main movement
         key = stdscr.getch()
@@ -590,7 +661,7 @@ def main(stdscr):
                 # Refresh quest window after pause to remove pause window overlap
                 update_quest(quest)
 
-            if key == c.KEY_LEFT or key == ord("a"):
+            if key == c.KEY_LEFT or key == ord("a") or key == ord("A"):
                 # Set previous player position to open space
                 pad.addstr(y + 12, x + 40, " ")
                 # Detect if tile is wall/bear/goldilocks/bear adjacent
@@ -602,7 +673,7 @@ def main(stdscr):
                         inventory = update_inventory("rock", inventory)
                     x -= 1
 
-            if key == c.KEY_RIGHT or key == ord("d"):
+            if key == c.KEY_RIGHT or key == ord("d") or key == ord("D"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12][x + 40 + 1]
                 if next_tile not in [1, 2, 4, goldilocks]:
@@ -610,7 +681,7 @@ def main(stdscr):
                         inventory = update_inventory("rock", inventory)
                     x += 1
 
-            if key == c.KEY_UP or key == ord("w"):
+            if key == c.KEY_UP or key == ord("w") or key == ord("W"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 - 1][x + 40]
                 if next_tile not in [1, 2, 4, goldilocks]:
@@ -618,7 +689,7 @@ def main(stdscr):
                         inventory = update_inventory("rock", inventory)
                     y -= 1
 
-            if key == c.KEY_DOWN or key == ord("s"):
+            if key == c.KEY_DOWN or key == ord("s") or key == ord("S"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 + 1][x + 40]
                 if next_tile not in [1, 2, 4, goldilocks]:
@@ -663,8 +734,13 @@ def main(stdscr):
             if quest or show_goldilocks and dialogue: ### REMOVESHOW GOLDILOCKS OPTION FROM THIS ONE LAFSADASDASDSAD
                 if (x + 40 in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3) and
                         y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
-                    goldilocks_dialogue()
+                    restart = goldilocks_dialogue()
                     dialogue = False
+            
+            if restart:# TODO MAKE A RESTART THING GOOD :))))))))))))))))))))))))))))))))))))))
+                main()
+
+
             if key == ord("l"):
                 # bear_dialogue()
                 # dialogue = True
