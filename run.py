@@ -4,7 +4,7 @@ import random
 import emoji
 
 from curses import wrapper
-from time import sleep
+import time
 from pprint import pprint
 
 ROWS = 75
@@ -373,7 +373,6 @@ def fight_goldilocks():
     fight_win  = c.newwin(18, 60, 3, 10)
     fight_win.keypad(True)
     fight_win.border()
-
     win = False
     defeat = False
 
@@ -386,12 +385,11 @@ def fight_goldilocks():
     player_y = 16
 
     fight_win.nodelay(True)
-    # c.halfdelay(2)
-    fps = 10
-    direction = -1
+    
+    fps = 10 # frames per second for goldilocks and projectile movement
+    goldilocks_direction = -1 # 
     projectiles = []
     key = 0
-    iteration = 0
     class Projectile():
         # The projectile class for spawning projectiles fired by player/goldilocks
         def __init__(self, y, x, speed):
@@ -408,21 +406,23 @@ def fight_goldilocks():
             self.active = False
         
     # Main movement:
-    time_since_last = 0 # Records the number of itereations since last projectile
+    iterations_since_last = 0 # Records the number of iteretions since last projectile
                         # fired, so as not to overwhelm player with projectiles
+    time_of_last = time.time() # Time of last goldilocks movement iteration
 
     while not win and not defeat:
-        if iteration % 3000 == 0:
+        
+        if time.time() - time_of_last > 1 / fps:
             # Goldilocks Movement
             fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
             if goldilocks_x == 57 or goldilocks_x == 1:
-                direction *= -1
-            goldilocks_x += direction
+                goldilocks_direction *= -1
+            goldilocks_x += goldilocks_direction
             fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
             
             # Goldilocks projectile movement
-            if random.randrange(100) > 80 and time_since_last > 8:
-                projectiles.append(Projectile(goldilocks_y, goldilocks_x, 1))
+            if (random.randrange(100) > 80 and iterations_since_last > 8) or goldilocks_x == player_x: 
+                projectiles.append(Projectile(goldilocks_y + 1, goldilocks_x, 1))
                 time_since_last = 0
             for projectile in projectiles:
                 fight_win.addstr(projectile.y, projectile.x, " ")
@@ -433,7 +433,8 @@ def fight_goldilocks():
                 else:
                     projectile.update_position()
                     fight_win.addstr(projectile.y, projectile.x, "|") 
-            time_since_last += 1
+            iterations_since_last += 1
+            time_of_last = time.time()
 
         key = fight_win.getch()
 
@@ -451,7 +452,6 @@ def fight_goldilocks():
         fight_win.addstr(player_y, player_x, "❤")
 
         fight_win.refresh()
-        iteration += 1
 
         if key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
             break
