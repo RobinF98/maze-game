@@ -371,6 +371,7 @@ def fight_goldilocks():
     Generates new window in which the player fights goldilocks
     """
     fight_win  = c.newwin(18, 60, 3, 10)
+    fight_win.keypad(True)
     fight_win.border()
 
     win = False
@@ -382,43 +383,80 @@ def fight_goldilocks():
 
     # PLAYER INITIAL POSITION
     player_x =  30
-    player_y = 17
+    player_y = 16
 
     fight_win.nodelay(True)
+    # c.halfdelay(2)
     fps = 10
     direction = -1
     projectiles = []
+    key = 0
+    iteration = 0
     class Projectile():
+        # The projectile class for spawning projectiles fired by player/goldilocks
         def __init__(self, y, x, speed):
             self.y = y
             self.x = x
             self.speed = speed
+            self.active = True
         
         def update_position(self):
             self.y += self.speed
             return self.y
         
+        def deactivate(self):
+            self.active = False
+        
     # Main movement:
-    while not win and not defeat:
-        fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
-        if goldilocks_x == 57 or goldilocks_x == 1:
-            direction *= -1
-        goldilocks_x += direction
-        fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
+    time_since_last = 0 # Records the number of itereations since last projectile
+                        # fired, so as not to overwhelm player with projectiles
 
-        if random.randrange(100) > 80:
-            projectiles.append(Projectile(goldilocks_y, goldilocks_x, 1))
-        for projectile in projectiles:
-            fight_win.addstr(projectile.y, projectile.x, " ")
-            projectile.update_position()
-            fight_win.addstr(projectile.y, projectile.x, "|") 
+    while not win and not defeat:
+        if iteration % 3000 == 0:
+            # Goldilocks Movement
+            fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
+            if goldilocks_x == 57 or goldilocks_x == 1:
+                direction *= -1
+            goldilocks_x += direction
+            fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
+            
+            # Goldilocks projectile movement
+            if random.randrange(100) > 80 and time_since_last > 8:
+                projectiles.append(Projectile(goldilocks_y, goldilocks_x, 1))
+                time_since_last = 0
+            for projectile in projectiles:
+                fight_win.addstr(projectile.y, projectile.x, " ")
+                # prevent projectiles updating outside of the fight window
+                if projectile.y > 15: 
+                    projectile.deactivate()
+                    projectiles.remove(projectile)
+                else:
+                    projectile.update_position()
+                    fight_win.addstr(projectile.y, projectile.x, "|") 
+            time_since_last += 1
+
+        key = fight_win.getch()
+
+        # Player movement
+        if key == c.KEY_LEFT:
+            if player_x != 2:
+                fight_win.addstr(player_y, player_x, " ")
+                player_x -= 1
+
+        if key == c.KEY_RIGHT:
+            if player_x != 58:
+                fight_win.addstr(player_y, player_x, " ")
+                player_x += 1
+        
+        fight_win.addstr(player_y, player_x, "❤")
 
         fight_win.refresh()
-        key = fight_win.getch()
-        if key == ord("m"):
+        iteration += 1
+
+        if key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
             break
         
-        sleep(1/fps)
+        # sleep(1/fps)
         
 
 
