@@ -146,20 +146,16 @@ def spawn_bear(map, x_limit):
 
 def spawn_goldilocks(map: list[list[int]]):
     """
-    Spawns goldilocks and porridge by adding them to the map list
+    Sets Golidlocks and Porridge area of map to open space
     Args:
         map (2D list): The 2D list containing the map
     Returns:
         map (2D list): The 2D list containing the map
     """
-    # Goldilocks adjacent cells (player can't move onto cell = 4)
+    # reserve open space for goldilocks
     for y in range(GOLDILOCKS_Y - 2, GOLDILOCKS_Y + 1):
         for x in range(GOLDILOCKS_X , GOLDILOCKS_X + 2):
-            map[y][x] = 4
-
-    # goldilocks & porridge placeholder
-    map[GOLDILOCKS_Y][GOLDILOCKS_X] = 2
-    map[PORRIDGE_Y][PORRIDGE_X] = 2
+            map[y][x] = 0
 
     return map
 
@@ -171,14 +167,16 @@ def inventory():
     inv_win.addstr("Inventory:")
     inv_win.refresh
     inv_win.getch()
-    inv = {"rock": 0, "porridge": 0}
+    inv = {"Rock": 0, "Porridge": 0}
     return inv
 
 
 def update_inventory(item: str, inv: dict):
-    new_inventory = inv[item] + 1  # .get(item,-1) + 1
+    new_inventory = inv[item] + 1
     inv.update({item: new_inventory})
-    inv_win.addstr(0, 10, f"{item}: {new_inventory}")
+    for index, item in enumerate(inv):
+        if inv[item] > 0:
+            inv_win.addstr(0, 11 + index * 10 , f"{item}: {inv[item]}")
     inv_win.refresh()
     return inv
 
@@ -367,8 +365,10 @@ def goldilocks_dialogue():
             pass
 
 def fight_goldilocks():
-    """
-    Generates new window in which the player fights goldilocks
+    """_summary_
+
+    Returns:
+        _type_: _description_
     """
     width = 60
     
@@ -384,15 +384,11 @@ def fight_goldilocks():
     goldilocks_y = 1
     goldilocks_health = 3
     goldilocks_hearts = "GOLDILOCKS: ❤ ❤ ❤"
-
     fight_win.addstr(0, 21, f"{goldilocks_hearts}")
 
     # PLAYER INITIAL POSITION
     player_x =  30
     player_y = 16
-    player_health = 1
-    player_hearts = "YOU: ❤"
-
     fight_win.addstr(17, 25, "PLAYER: ❤")
 
     fight_win.nodelay(True)
@@ -439,7 +435,7 @@ def fight_goldilocks():
                 projectiles.append(Projectile(goldilocks_y + 1, goldilocks_x, 1))
                 goldilocks_cooldown = 0
 
-             # Projectile movement
+            # Projectile movement
             for projectile in projectiles:
                 fight_win.addstr(projectile.y, projectile.x, " ")
                 # prevent projectiles updating outside of the fight window
@@ -502,28 +498,39 @@ def fight_goldilocks():
         fight_win.refresh()
 
         if win or key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+            fight_win.nodelay(False)
             c.flash()
             time.sleep(0.2)
             c.flash()
             win_win = fight_win.derwin(7, 32, 5, 14)
             win_win.border()
             win_win.addstr(3,5, "GOLDILOCKS 👧 DEFEATED")
-            win_win.addstr(5, 2, "Press any key to keep moving")
-            win_win.getch()
-            return True
+            win_win.addstr(5, 5, "Press E to keep moving")
+            key = win_win.getch()
+            while True:
+                if key == ord("e") or key == ord("E"):
+                    break
+                key = win_win.getch()
+
+            return True # Continue game
             break
 
         if defeat or key == ord("p"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+            fight_win.nodelay(False)
             c.flash()
             time.sleep(0.2)
             c.flash()
             defeat_win = fight_win.derwin(7, 32, 5, 14)
             defeat_win.border()
             defeat_win.addstr(3,12, "YOU DIED")
-            defeat_win.addstr(5, 4, "Press any key to restart")
-            restart = True
-            defeat_win.getch()
-            return restart
+            defeat_win.addstr(5, 8, "Press E to leave")
+            key = defeat_win.getch()
+            while True:
+                if key == ord("e") or key == ord("E"):
+                    break
+                key = defeat_win.getch()
+
+            return False # Game over
             break
         # if key == ord("m"): #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
         #     break
@@ -641,12 +648,8 @@ def main(stdscr):
     update_quest(quest)
     # will be set to 4 after goldilocks is spawned to prevent player/goldilocks
     # overlap:
-    goldilocks = 4
     show_goldilocks = False
-    done = False
     dialogue = True
-
-    restart = False # Restart game on True
 
     while True:
         # main movement
@@ -667,34 +670,34 @@ def main(stdscr):
                 # Detect if tile is wall/bear/goldilocks/bear adjacent
                 # (bear emoji character has a width of 2, so need to check 2 tiles)
                 next_tile = map[y + 12][x + 40 - 1]
-                if next_tile not in [1, 2, 4, goldilocks]:
+                if next_tile not in [1, 2, 4]:
                     # Detect if next tile is a rock
                     if next_tile == 3:
-                        inventory = update_inventory("rock", inventory)
+                        inventory = update_inventory("Rock", inventory)
                     x -= 1
 
             if key == c.KEY_RIGHT or key == ord("d") or key == ord("D"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12][x + 40 + 1]
-                if next_tile not in [1, 2, 4, goldilocks]:
+                if next_tile not in [1, 2, 4]:
                     if next_tile == 3:
-                        inventory = update_inventory("rock", inventory)
+                        inventory = update_inventory("Rock", inventory)
                     x += 1
 
             if key == c.KEY_UP or key == ord("w") or key == ord("W"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 - 1][x + 40]
-                if next_tile not in [1, 2, 4, goldilocks]:
+                if next_tile not in [1, 2, 4]:
                     if next_tile == 3:
-                        inventory = update_inventory("rock", inventory)
+                        inventory = update_inventory("Rock", inventory)
                     y -= 1
 
             if key == c.KEY_DOWN or key == ord("s") or key == ord("S"):
                 pad.addstr(y + 12, x + 40, " ")
                 next_tile = map[y + 12 + 1][x + 40]
-                if next_tile not in [1, 2, 4, goldilocks]:
+                if next_tile not in [1, 2, 4]:
                     if next_tile == 3:
-                        inventory = update_inventory("rock", inventory)
+                        inventory = update_inventory("Rock", inventory)
                     y += 1
 
             if key == ord("i") or key == ord("I"):
@@ -709,12 +712,11 @@ def main(stdscr):
                 pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(1))
                 pad.addstr(PORRIDGE_Y, PORRIDGE_X, "  ", c.color_pair(1))
                 
-            if key == ord("g") or quest and not done: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
+            if key == ord("g") or quest: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
                 show_goldilocks = True
                 pad.clear()
                 spawn_goldilocks(map)
                 draw_map(pad, map, colors)
-                done = True
             
             # Update player position
             pad.addch(y + 12, x + 40, "❤")
@@ -730,15 +732,21 @@ def main(stdscr):
                     quest = bear_dialogue() # set quest to True
                     update_quest(quest)
 
-            # Check if player is near goldilocks
+            # Check if player is near Goldilocks
             if quest or show_goldilocks and dialogue: ### REMOVESHOW GOLDILOCKS OPTION FROM THIS ONE LAFSADASDASDSAD
                 if (x + 40 in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3) and
                         y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
-                    restart = goldilocks_dialogue()
-                    dialogue = False
+                    if not goldilocks_dialogue(): # Game over if player loses to goldilocks
+                        print("GAME OVER")
+                        break
+                    else:
+                        dialogue = False
+                        pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(1))
+
+            # Check if player has collected porridge:
+            if x + 40 == PORRIDGE_X and y + 12 == PORRIDGE_Y:
+                inventory = update_inventory("Porridge", inventory)
             
-            if restart:# TODO MAKE A RESTART THING GOOD :))))))))))))))))))))))))))))))))))))))
-                main()
 
 
             if key == ord("l"):
