@@ -16,6 +16,10 @@ This is a small terminal adventure game
 
   - ![Smooth Map function in action](documentation/smooth_map.gif)
 
+### Data Model
+
+- the projectiles used in the fight between Goldilocks and the Player are spawned from the Projectile class
+
 ## Bugs
 
 - Pause menu takes a second to appear after esc press in Heroku deployment
