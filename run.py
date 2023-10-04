@@ -1,9 +1,8 @@
 # Write your code to expect a terminal of 80 characters wide and 24 rows high
 import curses as c
 import random
-import emoji
 
-from curses import wrapper
+# from curses import wrapper
 import time
 from pprint import pprint
 
@@ -23,6 +22,7 @@ GOLDILOCKS_Y = 30
 PORRIDGE_X = 50
 PORRIDGE_Y = 28
 
+PLAYER_ICON = "☺"
 
 def build_map(height, width, fill_percent):
     """
@@ -161,6 +161,13 @@ def spawn_goldilocks(map: list[list[int]]):
 
 
 def inventory():
+    """
+        Initialises new window below main pad to display player
+        inventory
+    Returns:
+        inv (dict): Dict containing items with key: inventory item, 
+                    and value: item quantity
+    """
     global inv_win
     inv_win = c.newwin(1, 40, 23, 0)
     inv_win.nodelay(True)
@@ -172,6 +179,15 @@ def inventory():
 
 
 def update_inventory(item: str, inv: dict):
+    """
+        Adds qty 1 to item in inventory
+    Args:
+        item (str): The item being updated 
+        inv (dict): Inventory dictionary containing item and qty
+
+    Returns:
+        _type_: _description_
+    """
     new_inventory = inv[item] + 1
     inv.update({item: new_inventory})
     for index, item in enumerate(inv):
@@ -182,6 +198,12 @@ def update_inventory(item: str, inv: dict):
 
 
 def coords(x: int, y: int):
+    """
+        Generates and updates coordinate window to keep track of player position
+    Args:
+        x (int): Player X coordinate
+        y (int): Player Y coordinate
+    """
     coords_win = c.newwin(1, 19, 23, 41)
     coords_win.addstr(0, 1, f"x:{x}, y:{y}")
     coords_win.refresh()
@@ -206,7 +228,7 @@ def show_inventory(inv: dict):
     inv_disp_win.getch()
 
 
-def pause_menu(screen):
+def pause_menu():
     """
     Creates Pause menu window above main game, with various game options
     """
@@ -239,7 +261,7 @@ def pause_menu(screen):
                 case 1:  # Help
                     pause_win.clear()
                     pause_win.noutrefresh()
-                    help_menu(screen)
+                    help_menu()
                     break
                 case 2:  # Exit
                     del pause_win
@@ -259,10 +281,9 @@ def pause_menu(screen):
         pause_win.refresh()
 
 
-def help_menu(screen):
-    """
-    Displays Help Menu information window
-    """
+def help_menu():
+    """ Displays Help Menu information window """
+
     help_win = c.newwin(18, 60, 3, 10)
     help_win.border()
 
@@ -283,8 +304,7 @@ def help_menu(screen):
     if key != -1:
         # del help_win
         # pause_win.refresh()
-        pause_menu(screen)
-
+        pause_menu()
 
 def bear_dialogue():
     """
@@ -373,7 +393,7 @@ def bear_dialogue_win():
         bear_win.refresh()
 
     bear_win.addstr(6, 2, f"{dialogue[4]}")
-    # key = bear_win.getch()
+
     while True:
         if key == ord("e") or key == ord("E"):
             bear_win.clear()
@@ -419,11 +439,27 @@ def goldilocks_dialogue():
         else:
             pass
 
-def fight_goldilocks():
-    """_summary_
+class Projectile():
+    """ Class for spawning and updating projectiles for minigame """
 
+    def __init__(self, y, x, speed):
+        self.y = y
+        self.x = x
+        self.speed = speed
+        self.active = True
+    
+    def update_position(self):
+        self.y += self.speed
+        return self.y
+    
+    def deactivate(self):
+        self.active = False
+
+def fight_goldilocks():
+    """
+        Generates window and logic for bullet dodge style minigame
     Returns:
-        _type_: _description_
+        (bool): Bool to define win or loss
     """
     width = 60
     
@@ -453,20 +489,6 @@ def fight_goldilocks():
     player_cooldown = 0 # Cooldown for player projectile firing, to prevent rapidfire
     projectiles = []
     key = 0
-    class Projectile():
-        # The projectile class for spawning projectiles fired by player/goldilocks
-        def __init__(self, y, x, speed):
-            self.y = y
-            self.x = x
-            self.speed = speed
-            self.active = True
-        
-        def update_position(self):
-            self.y += self.speed
-            return self.y
-        
-        def deactivate(self):
-            self.active = False
         
     # Main movement:
     goldilocks_cooldown = 0 # Records the number of iteretions since last projectile
@@ -475,15 +497,19 @@ def fight_goldilocks():
 
     while not win and not defeat:
         
+        # Only move Goldilocks and projectiles every 1/fps seconds
         if time.time() - time_of_last > 1 / fps:
             
             # Goldilocks Movement
             fight_win.addstr(goldilocks_y, goldilocks_x, "  ")
+
+            # Left / right boundaries
             if goldilocks_x == 57 or goldilocks_x == 1:
                 goldilocks_direction *= -1
             goldilocks_x += goldilocks_direction
             fight_win.addstr(goldilocks_y, goldilocks_x, "👧")
             
+            # Fire projectile semi-randomly
             if ((random.randrange(100) > 70 and goldilocks_cooldown > 5) or
                     goldilocks_x == player_x): 
 
@@ -493,14 +519,16 @@ def fight_goldilocks():
             # Projectile movement
             for projectile in projectiles:
                 fight_win.addstr(projectile.y, projectile.x, " ")
+
                 # prevent projectiles updating outside of the fight window
                 if projectile.y > 15 or projectile.y < 2: 
                     projectile.deactivate()
                     projectiles.remove(projectile)
+
                 else:
                     projectile.update_position()
 
-                    # Different projectiles for goldilocks/player
+                    # Different projectiles for goldilocks and player
                     if projectile.speed == 1:
                         # Goldilocks projectile
                         fight_win.addstr(projectile.y, projectile.x, "|") 
@@ -514,18 +542,20 @@ def fight_goldilocks():
                 
                     if goldilocks_health == 2:
                         goldilocks_hearts = "GOLDILOCKS: ❤ ❤  "
+
                     if goldilocks_health == 1:
                         goldilocks_hearts = "GOLDILOCKS: ❤    "
+
                     if goldilocks_health == 0:
                         goldilocks_hearts = "GOLDILOCKS:      "
                         win = True 
+
                     fight_win.addstr(0, 21, f"{goldilocks_hearts}")
 
                 # Player hit detection:
                 if projectile.y == player_y and projectile.x == player_x:
                     fight_win.addstr(17, 25, "PLAYER:  ")
                     defeat = True
-
 
             goldilocks_cooldown += 1 # Prevent rapid fire
             player_cooldown += 1 # Prevent rapid fire
@@ -534,21 +564,27 @@ def fight_goldilocks():
         key = fight_win.getch()
 
         # Player movement
+
+        # move left
         if key == c.KEY_LEFT or key == ord("a") or key == ord("A"):
             if player_x != 2:
                 fight_win.addstr(player_y, player_x, " ")
                 player_x -= 1
 
+        # move right
         if key == c.KEY_RIGHT or key == ord("d") or key == ord("D"):
             if player_x != 58:
                 fight_win.addstr(player_y, player_x, " ")
                 player_x += 1
 
+        # fire projectile
         if  key == ord(" ") and player_cooldown > 5:
-                    projectiles.append(Projectile(player_y - 1, player_x, -1))
-                    player_cooldown = 0
+            
+            # Soawn player projectile (note negative speed)
+            projectiles.append(Projectile(player_y - 1, player_x, -1))
+            player_cooldown = 0
 
-        fight_win.addstr(player_y, player_x, "❤")
+        fight_win.addstr(player_y, player_x, f"{PLAYER_ICON}")
                 
         fight_win.refresh()
 
@@ -605,14 +641,13 @@ def update_quest(quest: bool, quest_complete: bool):
         quest_win.addstr(4, 1, "• Get the")
         quest_win.addstr(5, 1, "  porridge from")
         quest_win.addstr(6, 1, "  Goldilocks")
+
     elif quest_complete:
         quest_win.addstr(4, 1, "• All")
         quest_win.addstr(5, 1, "  quests")
         quest_win.addstr(6, 1, "  complete")
         
-        
     quest_win.refresh()
-
 
 def spawn_rock(map: list[list[int]]):
     """
@@ -631,7 +666,6 @@ def spawn_rock(map: list[list[int]]):
                     if random.random() < 0.05:
                         map[row][col] = 3
     return map
-
 
 def main(stdscr):
     """
@@ -712,12 +746,14 @@ def main(stdscr):
     show_goldilocks = False
     show_porridge = False
 
+    goldilocks_spawned = False # True if Goldilocks has spawned
+
     while True:
         # main movement
         key = stdscr.getch()
-        if key != -1:
+        if key != -1: # 
             if key == ESC:
-                pause_menu(stdscr)
+                pause_menu()
             # Exits game if endwin has been called (from pause_menu)
             if key == ord("q") or c.isendwin():  # TODO: Remove "q" from this bit
                 break
@@ -768,20 +804,28 @@ def main(stdscr):
                 # show_inventory call
                 update_quest(quest, quest_complete)
 
-            # # hide goldilocks (until quest is active)
+            # Hide goldilocks (until quest is active)
             if not show_goldilocks:
                 pad.addstr(GOLDILOCKS_Y, GOLDILOCKS_X, "  ", c.color_pair(1))
+
             if not show_porridge:
                 pad.addstr(PORRIDGE_Y, PORRIDGE_X, "  ", c.color_pair(1))
                 
-            if key == ord("g") or quest: #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
+            # Spawn goldilocks on quest initiation    
+            if key == ord("g") or (quest and not goldilocks_spawned): #ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
                 
                 pad.clear()
                 spawn_goldilocks(map)
                 draw_map(pad, map, colors)
+
+                # Show Goldilocks, and Porridge
+                show_goldilocks = True
+                show_porridge = True
+
+                goldilocks_spawned = True 
             
             # Update player position
-            pad.addch(y + 12, x + 40, "❤")
+            pad.addstr(y + 12, x + 40, f"{PLAYER_ICON}")
             
             coords(x + 40, y + 12)
             pad.refresh(y, x, 0, 0, 22, 60)
@@ -791,10 +835,9 @@ def main(stdscr):
                     y + 12 in range(BEAR_Y - 1, BEAR_Y + 2)):
                 if not quest:    
                     # Interact with bear and add to quest list
-                    quest = bear_dialogue() # set quest to True
-                    show_goldilocks = True
-                    show_porridge = True
-                    update_quest(quest, quest_complete)
+
+                    quest = bear_dialogue()  # set quest to True
+                    update_quest(quest, quest_complete)  # Set quest window
 
                 elif inventory["Porridge"] > 0:
                     bear_dialogue_win()
@@ -804,22 +847,22 @@ def main(stdscr):
                     update_quest(quest, quest_complete)
 
             # Check if player is near Goldilocks
-            if quest and show_goldilocks: ### REMOVESHOW GOLDILOCKS OPTION FROM THIS ONE LAFSADASDASDSAD
+            if quest and show_goldilocks:  # REMOVESHOW GOLDILOCKS OPTION FROM THIS ONE LAFSADASDASDSAD
                 if (x + 40 in range(GOLDILOCKS_X - 1, GOLDILOCKS_X + 3) and
                         y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
+                    show_goldilocks = False
                     result = goldilocks_dialogue()
                     if not result: # Game over if player loses to goldilocks
                         print("GAME OVER")
                         break
-                    else:
-                        print(result)
-                        show_goldilocks = False
-                        print (show_goldilocks)
+                        
 
-            # Check if player has collected porridge:
-            if x + 40 == PORRIDGE_X and y + 12 == PORRIDGE_Y:
+            # Check if player is on porridge:
+            if x + 40 == PORRIDGE_X and y + 12 == PORRIDGE_Y and show_porridge:
+                # Add porridge to inventory
                 inventory = update_inventory("Porridge", inventory)
-                # show_porridge = False
+                # Hide porridge
+                show_porridge = False
 
             if key == ord("l"):
                 bear_dialogue_win()
@@ -834,4 +877,5 @@ def main(stdscr):
             if key == ord("t"):
                 quest = True
                 show_goldilocks = True
-wrapper(main)
+
+c.wrapper(main)
