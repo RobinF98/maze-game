@@ -484,7 +484,6 @@ def fight_goldilocks():
             "• Don't get hit!"
     ]
 
-
     width = 60
 
     fight_win = c.newwin(18, width, 3, 10)
@@ -572,8 +571,10 @@ def fight_goldilocks():
 
                 # Goldilocks hit detection:
                 if (projectile.y == goldilocks_y and
-                   (projectile.x == goldilocks_x or projectile.x == goldilocks_x + 1)):
+                   (projectile.x == goldilocks_x or
+                        projectile.x == goldilocks_x + 1)):
 
+                    # Decrease Health and Hearts
                     goldilocks_health -= 1
 
                     if goldilocks_health == 2:
@@ -624,7 +625,7 @@ def fight_goldilocks():
 
         fight_win.refresh()
 
-        if win or key == ord("m"):  #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+        if win:
             fight_win.nodelay(False)
             c.flash()
             time.sleep(0.2)
@@ -642,7 +643,7 @@ def fight_goldilocks():
             return True  # Continue game
             break
 
-        if defeat or key == ord("p"):  #ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDWERWIJOIJWERIJWDJOJOROJOJJIJOJOJIJOJUIJOJOJIJOJOJIJOJIJOJIJIOJOJIJOJIJOJIJSDF
+        if defeat:
             fight_win.nodelay(False)
             c.flash()
             time.sleep(0.2)
@@ -701,7 +702,7 @@ def controls():
         "ESC for pause",
         "Explore!"
     ]
-    
+
     controls_win.addstr(0, 4, " CONTROLS ")
 
     # Print out controls
@@ -807,7 +808,7 @@ def main(stdscr):
     quest_complete = False
 
     # Controls
-    controls()  
+    controls()
 
     # Generate quest window
     update_quest(quest, quest_complete)
@@ -824,7 +825,7 @@ def main(stdscr):
             if key == ESC:
                 pause_menu()
             # Exits game if endwin has been called (from pause_menu)
-            if key == ord("q") or c.isendwin():  # TODO: Remove "q" from this bit mmmmmmmmmmmmmmmm
+            if key == ord("q") or c.isendwin():
                 break
             else:
                 # Refresh quest window after pause to remove window overlap
@@ -886,7 +887,7 @@ def main(stdscr):
                 pad.addstr(PORRIDGE_Y, PORRIDGE_X, "  ", c.color_pair(1))
 
             # Spawn goldilocks on quest initiation
-            if key == ord("g") or (quest and not goldilocks_spawned):  # ADFSUDFSDUHFIOSDHFI REMOVE G CHECK AASDASHDASIDJAOIDFJAROIGJA45
+            if (quest and not goldilocks_spawned):
 
                 pad.clear()
                 spawn_goldilocks(map)
@@ -938,20 +939,6 @@ def main(stdscr):
                 inventory = update_inventory("Porridge", inventory)
                 # Hide porridge
                 show_porridge = False
-
-            if key == ord("l"):
-                bear_dialogue_win()
-                # dialogue = True
-                # fight_goldilocks()
-            # pad.refresh(y, x, 0, 0, 40, 155)
-            if key == ord("k"):
-                # bear_dialogue_win()
-                # dialogue = True
-                fight_goldilocks()
-            # pad.refresh(y, x, 0, 0, 40, 155)
-            if key == ord("t"):
-                quest = True
-                show_goldilocks = True
 
 
 c.wrapper(main)
