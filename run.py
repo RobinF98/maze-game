@@ -321,7 +321,7 @@ def bear_dialogue():
     bear_win.border()
     dialogue = [
         "BOooo HOOooo : 🐻",
-        "❤ : Hey hey, what's the matter?",
+        "☺ : Hey hey, what's the matter?",
         "Goldilocks stole my porridge, and I'm so hungwy : 🐻",
         "Press E to console",
         "Baby Bear is unconsolable",
@@ -365,7 +365,7 @@ def bear_dialogue_win():
     bear_win = c.newwin(10, 79, 13, 0)
     bear_win.border()
     dialogue = [
-        "❤ : Hello 🐻, guess what I got you",
+        "☺ : Hello 🐻, guess what I got you",
         "OMG! I have no idea! What did you get? : 🐻",
         "Press E to give 🥣",
         "Oh, thanks. I'm don't really like porridge anymore : 🐻",
@@ -424,9 +424,9 @@ def goldilocks_dialogue():
     gold_win.border()
     dialogue = [
         "STAY AWAY FROM MY PORRIDGE !!! : 👧",
-        "❤ : HEY! You scared me",
+        "☺ : HEY! You scared me",
         "I DON'T CARE. LEAVE ME AND MY PORRIDGE ALONE! : 👧",
-        "❤ : That porridge belongs to 🐻, not you!",
+        "☺ : That porridge belongs to 🐻, not you!",
         "OH YEAH?? WHAT ARE YOU GOING TO DO ABOUT IT? : 👧",
         "Press E to fight"
     ]
@@ -445,7 +445,9 @@ def goldilocks_dialogue():
         key = gold_win.getch()
         if key == ord("e") or key == ord("E"):
             gold_win.clear()
+
             return fight_goldilocks()
+
             break
         else:
             pass
@@ -474,10 +476,28 @@ def fight_goldilocks():
     Returns:
         (bool): Bool to define win or loss
     """
+
+    controls = [
+            "• Left/Right/A/D",
+            "  to move",
+            "• Space to fire",
+            "• Don't get hit!"
+    ]
+
+
     width = 60
 
     fight_win = c.newwin(18, width, 3, 10)
     fight_win.keypad(True)
+    fight_win.border()
+
+    # Display controls
+    for index, string in enumerate(controls):
+        fight_win.addstr(4 + index * 2, 20, string)
+
+    fight_win.refresh()
+    fight_win.getch()
+    fight_win.clear()
     fight_win.border()
 
     win = False
@@ -552,7 +572,7 @@ def fight_goldilocks():
 
                 # Goldilocks hit detection:
                 if (projectile.y == goldilocks_y and
-                   projectile.x == goldilocks_x):
+                   (projectile.x == goldilocks_x or projectile.x == goldilocks_x + 1)):
 
                     goldilocks_health -= 1
 
@@ -649,22 +669,46 @@ def update_quest(quest: bool, quest_complete: bool):
         quest (bool): Bool indicating whether a quest has started
         quest_complete (bool): Bool indicating quest completed
     """
-    quest_win = c.newwin(23, 19, 0, 61)
+    quest_win = c.newwin(11, 19, 0, 61)
     quest_win.border()
 
-    quest_win.addstr(2, 7, "QUESTS")
+    quest_win.addstr(0, 5, " QUESTS ")
 
     if quest:
-        quest_win.addstr(4, 1, "• Get the")
-        quest_win.addstr(5, 1, "  porridge from")
-        quest_win.addstr(6, 1, "  Goldilocks")
+        quest_win.addstr(3, 1, "• Get the")
+        quest_win.addstr(4, 1, "  porridge from")
+        quest_win.addstr(5, 1, "  Goldilocks,")
+        quest_win.addstr(6, 1, "  and take it to")
+        quest_win.addstr(7, 1, "  🐻")
 
     elif quest_complete:
-        quest_win.addstr(4, 1, "• All")
-        quest_win.addstr(5, 1, "  quests")
-        quest_win.addstr(6, 1, "  complete")
+        quest_win.addstr(3, 1, "• All")
+        quest_win.addstr(4, 1, "  quests")
+        quest_win.addstr(5, 1, "  complete")
 
     quest_win.refresh()
+
+
+def controls():
+    """ Generates window to display controls for game. """
+
+    controls_win = c.newwin(10, 19, 11, 61)
+    controls_win.border()
+
+    controls = [
+        "Arrow keys / WASD",
+        "I for inventory",
+        "ESC for pause",
+        "Explore!"
+    ]
+    
+    controls_win.addstr(0, 4, " CONTROLS ")
+
+    # Print out controls
+    for index, string in enumerate(controls):
+        controls_win.addstr(2 + index * 2, 1, string)
+
+    controls_win.refresh()
 
 
 def spawn_rock(map: list[list[int]]):
@@ -762,6 +806,9 @@ def main(stdscr):
     quest = False
     quest_complete = False
 
+    # Controls
+    controls()  
+
     # Generate quest window
     update_quest(quest, quest_complete)
 
@@ -829,6 +876,7 @@ def main(stdscr):
                 # run update quest to ensure quest window displays
                 # properly after show_inventory() call
                 update_quest(quest, quest_complete)
+                controls()
 
             # Hide goldilocks (until quest is active)
             if not show_goldilocks:
@@ -864,6 +912,7 @@ def main(stdscr):
 
                     quest = bear_dialogue()  # set quest to True
                     update_quest(quest, quest_complete)  # Set quest window
+                    controls()
 
                 elif inventory["Porridge"] > 0:
                     bear_dialogue_win()
@@ -878,6 +927,7 @@ def main(stdscr):
                         y + 12 in range(PORRIDGE_Y - 1, GOLDILOCKS_Y + 2)):
                     show_goldilocks = False
                     result = goldilocks_dialogue()
+                    controls()
                     if not result:  # Game over if player loses to goldilocks
                         print("GAME OVER")
                         break
